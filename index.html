@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>SY &amp; HJ 상하이 트립</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" integrity="sha384-BSxuMLxX+FCbTdYec3TbXlnMGEEM2QXTFdtDaveen71o+jswm2J36+xFqp8k4VHM" crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@400;600;800&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -288,7 +288,7 @@ dialog button.primary{background:var(--orange); color:#fff}
   <h3>☁️ 친구와 일정 공유</h3>
   <div class="cfield"><label>방 코드</label><input id="cRoom" placeholder="예: my-trip-01 (영문/숫자/-)"></div>
   <div class="cfield"><label>비밀번호</label><input id="cPw" type="password" placeholder="친구와 약속한 비밀번호"></div>
-  <div class="cfield"><label>내 이름</label><input id="cWho" placeholder="예: 제니"></div>
+  <div class="cfield"><label>저장 이름</label><input id="cWho" placeholder="예: 제니의 계획"></div>
   <div class="btns" style="justify-content:flex-start; margin-top:4px">
     <button id="cSave" class="primary">지금 일정 저장</button>
     <button id="cList">저장 목록 보기</button>
@@ -606,7 +606,7 @@ function renderDay(){
 
   // 상단 앵커
   if(i===0){
-    box.appendChild(anchorEl('✈️', `${st.arrTime} 푸동공항 도착`, '디디택시 B2층 탑승 or 트립닷컴 픽업(가족여행 강추)'));
+    box.appendChild(anchorEl('✈️', `${esc(st.arrTime)} 푸동공항 도착`, '디디택시 B2층 탑승 or 트립닷컴 픽업(가족여행 강추)'));
   }else if(st.hotelInRoute){
     box.appendChild(anchorEl('🏨', `${esc(hotel.name)} 출발`, hotel.zh||'', true));
   }
@@ -629,7 +629,7 @@ function renderDay(){
   const isLast = i===numDays()-1;
   if(items.length && (st.hotelInRoute || isLast)) box.appendChild(segEl(items.length));
   if(isLast){
-    box.appendChild(anchorEl('✈️', `${st.depTime} 푸동공항 출발`, '2~3시간 전 공항 도착 권장 · 짐 찾으러 호텔 경유 잊지 마세요!'));
+    box.appendChild(anchorEl('✈️', `${esc(st.depTime)} 푸동공항 출발`, '2~3시간 전 공항 도착 권장 · 짐 찾으러 호텔 경유 잊지 마세요!'));
   }else if(st.hotelInRoute){
     box.appendChild(anchorEl('🏨', `${esc(hotel.name)} 복귀`, '', true));
   }
@@ -686,15 +686,15 @@ function cardEl(it, idx, color){
     <div class="badge">${idx+1}</div>
     <div class="bodyc">
       <div class="l1">
-        <input class="tm" type="time" value="${it.time||''}" title="시간">
+        <input class="tm" type="time" value="${esc(it.time||'')}" title="시간">
         <span class="nm">${esc(dispName)}</span>
         <button class="editnm" title="이름 수정">✏️</button>
         <span class="zh">${esc(p.zh||'')}</span>
       </div>
       ${p.tip?`<div class="quick">💡 ${esc(p.tip)}</div>`:''}
       <div class="links">
-        <a href="${gmap}" target="_blank">애플지도 </a>
-        ${p.amap?`<a href="${p.amap}" target="_blank">고덕지도 🇨🇳</a>`:''}
+        <a href="${esc(gmap)}" target="_blank" rel="noopener">애플지도 </a>
+        ${p.amap && /^https?:\/\//.test(p.amap) ? `<a href="${esc(p.amap)}" target="_blank" rel="noopener">고덕지도 🇨🇳</a>` : ''}
         <button class="memobtn">📝 메모</button>
       </div>
       <textarea class="memo" placeholder="우리끼리 메모 (예: 웨이팅 몇 시에 걸기, 예산…)">${esc(it.memo||'')}</textarea>
