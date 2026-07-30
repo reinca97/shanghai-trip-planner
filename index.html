@@ -294,7 +294,7 @@ dialog button.primary{background:var(--orange); color:#fff}
     <button id="cList">저장 목록 보기</button>
   </div>
   <div id="cSlots"></div>
-  <div id="cMsg">같은 방 코드로 저장하면 친구와 나의 저장본이 한 목록에 쌓여요. 처음 저장할 때 입력한 비밀번호가 그 방의 비밀번호가 됩니다.</div>
+  <div id="cMsg">같은 방 코드로 저장하면 친구와 나의 저장본이 한 목록에 쌓여요. 방 코드와 비밀번호가 모두 맞아야 저장·삭제할 수 있어요.</div>
   <div class="btns"><button onclick="cloudDialog.close()">닫기</button></div>
 </dialog>
 
@@ -974,7 +974,7 @@ async function cloudSave(){
       who:c.who, at:Date.now(), data:JSON.stringify(state)
     };
     const r=await putRoom(c.room, secret, slots);
-    if(r.status===401||r.status===403){ cMsgSet('❌ 비밀번호가 이 방의 비밀번호와 달라요.'); return; }
+    if(r.status===401||r.status===403){ cMsgSet('❌ 등록되지 않은 방이거나 비밀번호가 달라요.'); return; }
     if(!r.ok) throw 0;
     cMsgSet('✅ 저장했어요! 친구는 같은 방 코드로 이 목록을 볼 수 있어요.');
     renderSlots(slots);
@@ -1017,7 +1017,7 @@ async function cloudDelete(id){
     const slots=await fetchSlots(c.room);
     delete slots[id];
     const r=await putRoom(c.room, secret, slots);
-    if(r.status===401||r.status===403){ cMsgSet('❌ 삭제하려면 이 방의 비밀번호가 필요해요.'); return; }
+    if(r.status===401||r.status===403){ cMsgSet('❌ 등록되지 않은 방이거나 비밀번호가 달라요.'); return; }
     if(!r.ok) throw 0;
     cMsgSet('삭제했어요.');
     renderSlots(slots);
