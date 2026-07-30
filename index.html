@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>상하이 트립 플래너 🍊</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@400;600;800&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f7f1e6; --paper2:#fffaf0; --ink:#23252b; --ink2:#6b675e;
+  --line:#e2d9c8; --orange:#e8630f; --orange-soft:#fdeadb;
+  --shadow:0 2px 10px rgba(60,45,20,.09);
+  --d1:#e05d2c; --d2:#0f7b6c; --d3:#3b6fc9; --d4:#b13a86; --d5:#c98a12; --d6:#5b57c7; --d7:#2a8f4e; --d8:#8a5a3b;
+}
+*{box-sizing:border-box; margin:0; padding:0}
+html,body{height:100%}
+body{
+  font-family:'IBM Plex Sans KR',sans-serif; color:var(--ink);
+  background:var(--paper);
+  background-image:radial-gradient(rgba(160,130,80,.07) 1px, transparent 1px);
+  background-size:22px 22px;
+  display:flex; flex-direction:column; overflow:hidden;
+}
+button{font-family:inherit; cursor:pointer}
+input,select,textarea{font-family:inherit; font-size:13px; color:var(--ink)}
+
+/* ---------- header ---------- */
+header{
+  flex:0 0 auto; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  padding:10px 18px; background:var(--paper2); border-bottom:2px solid var(--ink);
+}
+header h1{font-family:'Hahmlet',serif; font-weight:800; font-size:21px; letter-spacing:-.5px; white-space:nowrap}
+header h1 em{color:var(--orange); font-style:normal}
+.hgroup{display:flex; align-items:center; gap:6px; background:#fff; border:1.5px solid var(--line);
+  border-radius:10px; padding:5px 10px}
+.hgroup label{font-size:11px; font-weight:700; color:var(--ink2); white-space:nowrap}
+.hgroup input,.hgroup select{border:none; outline:none; background:transparent; font-weight:600}
+.hgroup input[type=date]{width:118px}
+.hgroup input[type=time]{width:96px}
+.stepper{display:flex; align-items:center; gap:2px}
+.stepper button{width:22px; height:22px; border:1.5px solid var(--ink); border-radius:6px; background:#fff; font-weight:800; line-height:1}
+.stepper b{min-width:44px; text-align:center; font-size:14px}
+.hbtns{margin-left:auto; display:flex; gap:8px}
+.hbtns button{border:1.5px solid var(--ink); background:#fff; border-radius:10px; padding:6px 12px; font-size:12px; font-weight:700; box-shadow:2px 2px 0 var(--ink); transition:.12s}
+.hbtns button:hover{transform:translate(1px,1px); box-shadow:1px 1px 0 var(--ink)}
+.hbtns button.primary{background:var(--orange); color:#fff}
+#hotelSelect{max-width:190px}
+
+/* ---------- layout ---------- */
+main{flex:1 1 auto; display:grid; grid-template-columns:295px minmax(370px,1fr) minmax(340px,1.1fr); min-height:0}
+@media(max-width:1100px){ main{grid-template-columns:260px 1fr; } #mapPane{display:none} .maponly main{grid-template-columns:0 0 1fr}}
+
+/* ---------- sidebar (library) ---------- */
+#library{border-right:2px solid var(--ink); background:var(--paper2); display:flex; flex-direction:column; min-height:0}
+#library .libhead{padding:12px 14px 8px}
+#library h2{font-family:'Hahmlet',serif; font-size:15px; font-weight:800}
+#library .sub{font-size:11px; color:var(--ink2); margin-top:2px}
+#libSearch{width:100%; margin-top:8px; border:1.5px solid var(--line); border-radius:8px; padding:6px 10px; background:#fff; outline:none}
+#libSearch:focus{border-color:var(--orange)}
+.cattabs{display:flex; flex-wrap:wrap; gap:4px; padding:8px 14px 8px}
+.cattabs button{font-size:11px; font-weight:700; padding:4px 9px; border-radius:99px; border:1.5px solid var(--line); background:#fff; color:var(--ink2)}
+.cattabs button.on{background:var(--ink); color:#fff; border-color:var(--ink)}
+#libList{flex:1; overflow-y:auto; padding:4px 14px 20px; min-height:0}
+.libitem{
+  background:#fff; border:1.5px solid var(--line); border-radius:10px;
+  padding:8px 10px; margin-bottom:7px; cursor:grab; position:relative; transition:border-color .12s;
+}
+.libitem:hover{border-color:var(--orange)}
+.libitem .nm{font-weight:700; font-size:13px; line-height:1.3}
+.libitem .zh{font-size:11px; color:var(--ink2)}
+.libitem .cat{position:absolute; top:8px; right:9px; font-size:10px; font-weight:700; color:var(--orange)}
+.libitem .addbtn{position:absolute; bottom:7px; right:8px; width:22px; height:22px; border-radius:7px; border:1.5px solid var(--ink);
+  background:var(--orange-soft); font-weight:800; font-size:14px; line-height:1; display:none}
+.libitem:hover .addbtn{display:block}
+.libnote{font-size:11px; color:var(--ink2); padding:2px 2px 8px}
+#customBox{border-top:2px dashed var(--line); padding:10px 14px 14px; background:#fdf8ee}
+#customBox h3{font-size:12px; font-weight:800; margin-bottom:6px}
+#customBox .row{display:flex; gap:6px; margin-bottom:6px}
+#customBox input{flex:1; border:1.5px solid var(--line); border-radius:8px; padding:6px 9px; background:#fff; outline:none}
+#customBox button{border:1.5px solid var(--ink); border-radius:8px; background:#fff; font-size:11px; font-weight:700; padding:5px 9px}
+#customBox button.on{background:var(--orange); color:#fff}
+#searchResults{max-height:130px; overflow-y:auto}
+#searchResults .sr{font-size:11.5px; padding:5px 8px; background:#fff; border:1px solid var(--line); border-radius:7px; margin-bottom:4px; cursor:pointer}
+#searchResults .sr:hover{border-color:var(--orange)}
+
+/* ---------- board ---------- */
+#board{display:flex; flex-direction:column; min-height:0; min-width:0}
+#dayTabs{display:flex; gap:0; overflow-x:auto; flex:0 0 auto; border-bottom:2px solid var(--ink); background:var(--paper);}
+#dayTabs button{
+  flex:0 0 auto; border:none; background:transparent; padding:10px 16px 8px; font-size:12.5px; font-weight:700;
+  color:var(--ink2); border-right:1.5px dashed var(--line); position:relative;
+}
+#dayTabs button .dt{display:block; font-size:10px; font-weight:500}
+#dayTabs button.on{color:#fff; background:var(--tabclr,var(--ink));}
+#dayList{flex:1; overflow-y:auto; padding:16px 20px 60px; min-height:0}
+.anchor{
+  display:flex; align-items:center; gap:10px; background:var(--ink); color:#fff;
+  border-radius:12px; padding:10px 14px; font-size:13px; font-weight:600;
+}
+.anchor .ic{font-size:17px}
+.anchor small{opacity:.75; font-weight:400; display:block; font-size:11px}
+.anchor.hotel{background:#fff; color:var(--ink); border:1.5px dashed var(--ink)}
+.dayitems{min-height:30px; padding:2px 0}
+.seg{
+  display:flex; align-items:center; gap:8px; padding:3px 0 3px 17px; font-size:11.5px; color:var(--ink2);
+}
+.seg .dotline{width:2px; height:26px; background:repeating-linear-gradient(var(--ink2) 0 3px, transparent 3px 7px); opacity:.5}
+.seg b{color:var(--ink); font-weight:700}
+.card{
+  background:#fff; border:1.5px solid var(--ink); border-radius:13px; box-shadow:var(--shadow);
+  padding:9px 12px 9px 10px; display:flex; gap:9px; align-items:flex-start; position:relative;
+}
+.card.ghosting{opacity:.4}
+.card .badge{
+  flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--dayclr,var(--orange));
+  color:#fff; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; margin-top:2px;
+  cursor:grab; font-family:'Hahmlet',serif;
+}
+.card .bodyc{flex:1; min-width:0}
+.card .l1{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
+.card .l1 input.tm{border:none; outline:none; background:var(--orange-soft); border-radius:6px; padding:1px 5px; font-weight:700; font-size:12px; width:104px}
+.card .l1 .nm{font-weight:700; font-size:14px}
+.card .l1 .zh{font-size:11px; color:var(--ink2)}
+.card .quick{font-size:11.5px; color:var(--ink2); margin-top:2px; line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+.card.open .quick{display:block; -webkit-line-clamp:unset}
+.card .links{display:flex; gap:6px; margin-top:6px; flex-wrap:wrap}
+.card .links a,.card .links button{
+  font-size:10.5px; font-weight:700; text-decoration:none; color:var(--ink);
+  border:1px solid var(--line); border-radius:6px; padding:2px 7px; background:var(--paper2);
+}
+.card .links a:hover{border-color:var(--orange); color:var(--orange)}
+.card .memo{width:100%; margin-top:6px; border:1.5px dashed var(--line); border-radius:8px; padding:5px 8px; font-size:12px; background:#fffdf5; resize:vertical; min-height:34px; display:none; outline:none}
+.card.open .memo{display:block}
+.card .del{position:absolute; top:7px; right:8px; border:none; background:none; color:#c33; font-size:13px; font-weight:800; opacity:.35}
+.card .del:hover{opacity:1}
+.card .toggle{position:absolute; bottom:7px; right:8px; border:none; background:none; font-size:11px; color:var(--ink2)}
+.dayfoot{margin-top:14px; font-size:12px; color:var(--ink2); text-align:center}
+.dayfoot b{color:var(--ink)}
+.empty-hint{border:2px dashed var(--line); border-radius:12px; padding:22px; text-align:center; color:var(--ink2); font-size:12.5px; margin:8px 0}
+
+/* ---------- map ---------- */
+#mapPane{border-left:2px solid var(--ink); position:relative; min-height:0}
+#map{position:absolute; inset:0}
+#mapCtl{position:absolute; z-index:800; top:10px; right:10px; display:flex; gap:6px}
+#mapCtl button{border:1.5px solid var(--ink); background:#fff; border-radius:8px; font-size:11px; font-weight:700; padding:5px 9px; box-shadow:2px 2px 0 rgba(0,0,0,.25)}
+#mapCtl button.on{background:var(--ink); color:#fff}
+#mapMsg{position:absolute; z-index:800; bottom:12px; left:50%; transform:translateX(-50%); background:rgba(35,37,43,.88); color:#fff; font-size:11.5px; padding:5px 12px; border-radius:99px; display:none; white-space:nowrap}
+.numpin{
+  width:26px; height:26px; border-radius:50% 50% 50% 4px; transform:rotate(-45deg);
+  border:2px solid #fff; box-shadow:0 1px 5px rgba(0,0,0,.4);
+  display:flex; align-items:center; justify-content:center;
+}
+.numpin span{transform:rotate(45deg); color:#fff; font-weight:800; font-size:12px; font-family:'Hahmlet',serif}
+.iconpin{font-size:22px; text-shadow:0 1px 3px rgba(0,0,0,.4)}
+.leaflet-popup-content{font-family:'IBM Plex Sans KR',sans-serif; font-size:12.5px}
+.leaflet-popup-content b{font-size:13.5px}
+
+/* drag ghost */
+.sortable-ghost{opacity:.35}
+.sortable-drag{opacity:.95}
+
+dialog{border:2px solid var(--ink); border-radius:14px; padding:20px; max-width:420px; box-shadow:6px 6px 0 rgba(35,37,43,.25); background:var(--paper2)}
+dialog::backdrop{background:rgba(35,37,43,.45)}
+dialog h3{font-family:'Hahmlet',serif; margin-bottom:10px}
+dialog textarea{width:100%; height:180px; border:1.5px solid var(--line); border-radius:8px; padding:8px; font-size:11px; background:#fff}
+dialog .btns{display:flex; gap:8px; margin-top:12px; justify-content:flex-end}
+dialog button{border:1.5px solid var(--ink); background:#fff; border-radius:8px; padding:6px 14px; font-weight:700; font-size:12px}
+dialog button.primary{background:var(--orange); color:#fff}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>상하이 트립 플래너 <em>🍊</em></h1>
+  <div class="hgroup"><label>출발일</label><input type="date" id="startDate"></div>
+  <div class="hgroup"><label>기간</label>
+    <div class="stepper"><button id="nMinus">−</button><b id="nightsLabel">5박 6일</b><button id="nPlus">＋</button></div>
+  </div>
+  <div class="hgroup"><label>✈️ 도착</label><input type="time" id="arrTime"></div>
+  <div class="hgroup"><label>✈️ 출발</label><input type="time" id="depTime"></div>
+  <div class="hgroup"><label>🏨 숙소</label><select id="hotelSelect"></select></div>
+  <div class="hgroup"><label>경로에 숙소 포함</label><input type="checkbox" id="hotelInRoute"></div>
+  <div class="hbtns">
+    <button id="btnExport">내보내기</button>
+    <button id="btnImport">가져오기</button>
+    <button id="btnReset">초기화</button>
+  </div>
+</header>
+
+<main>
+  <!-- library -->
+  <aside id="library">
+    <div class="libhead">
+      <h2>장소 라이브러리</h2>
+      <div class="sub">by 윤제주(@yooonjeju) 가이드 · 드래그하거나 ＋로 일정에 추가</div>
+      <input id="libSearch" placeholder="장소 검색…">
+    </div>
+    <div class="cattabs" id="catTabs"></div>
+    <div id="libList"></div>
+    <div id="customBox">
+      <h3>➕ 새 장소 추가</h3>
+      <div class="row"><input id="cpName" placeholder="장소 이름 (예: OO카페)"></div>
+      <div class="row">
+        <button id="cpSearch">🔍 지도에서 검색</button>
+        <button id="cpPick">📍 지도 클릭으로 지정</button>
+      </div>
+      <div id="searchResults"></div>
+    </div>
+  </aside>
+
+  <!-- board -->
+  <section id="board">
+    <div id="dayTabs"></div>
+    <div id="dayList"></div>
+  </section>
+
+  <!-- map -->
+  <section id="mapPane">
+    <div id="map"></div>
+    <div id="mapCtl">
+      <button id="mapModeDay" class="on">이 날만</button>
+      <button id="mapModeAll">전체 보기</button>
+    </div>
+    <div id="mapMsg"></div>
+  </section>
+</main>
+
+<dialog id="ioDialog">
+  <h3 id="ioTitle">일정 내보내기</h3>
+  <textarea id="ioText"></textarea>
+  <div class="btns">
+    <button id="ioCopy">복사</button>
+    <button id="ioApply" class="primary">적용</button>
+    <button onclick="ioDialog.close()">닫기</button>
+  </div>
+</dialog>
+
+<script>
+/* ============================================================
+   DATA — 윤제주 상하이 가이드 기반 장소 데이터
+   좌표는 근사값입니다. 지도에서 핀을 드래그하면 위치를 보정할 수 있어요.
+============================================================ */
+const HOTELS = [
+ {id:'h_ji',   name:'JI 호텔 (더번드 쓰촨중로)', zh:'全季酒店', lat:31.2440, lng:121.4860, tip:'7만원 후반~ / 가성비 굿, 위치 굿(북와이탄·와이탄·난징동루 인접). 동방명주 뷰 객실: Superior 1 Bed Room with View'},
+ {id:'h_bw',   name:'브로드웨이 맨션 호텔', zh:'上海大厦', lat:31.2465, lng:121.4905, tip:'10만원 초반~ / 100년 역사 클래식 5성급. 리버뷰(와이탄) 강추. 5% 할인코드: YOOONJEJU'},
+ {id:'h_gc',   name:'그랜드 센트럴 상하이', zh:'上海南新雅大酒店', lat:31.2355, lng:121.4790, tip:'난징동루 중심 위치 1등! 한국인이 가장 많이 가는 곳'},
+ {id:'h_eton', name:'디 이튼 상하이', zh:'裕景大饭店', lat:31.2210, lng:121.5290, tip:'가격 대비 넓은 룸, 가성비, 지하철 앞이라 교통 편리'},
+];
+
+// cat: tour 관광 / food 맛집 / cafe 카페·디저트 / shop 쇼핑 / etc 기타
+// def:[day(1-base), order, 'HH:MM'] → 기본 5박6일 일정 배치
+const PLACES = [
+ // ---- Day 1
+ {id:'checkin', name:'숙소 체크인', zh:'', cat:'etc', useHotel:true, def:[1,1,'14:00'], tip:'짐 풀고 가볍게 출발!'},
+ {id:'crabnoodle', name:'장씨네 게살국수', zh:'庄氏隆兴 (뉴월드 다이마루점)', cat:'food', lat:31.2390, lng:121.4855, amap:'https://surl.amap.com/jyqFJcyq7qZ', def:[1,2,'15:00'], tip:'가성비 게살국수 맛집. 샤오롱바오는 고기/새우 섞인 게 더 맛있어요. 따종디엔핑 쿠폰 검색! 2인 3.5~4만원'},
+ {id:'heytea', name:'헤이티 / 루이싱 커피', zh:'喜茶 / 瑞幸咖啡 (뉴월드 다이마루)', cat:'cafe', lat:31.2391, lng:121.4857, amap:'https://surl.amap.com/adVHY2O51T2', def:[1,3,'16:00'], tip:'식후 1일 1차 필수! 위챗 미니프로그램으로 미리 주문 → 바로 픽업. 헤이티: 치즈폼 포도 / 루이싱: 코코넛 라떼 강추. 3천원 내외'},
+ {id:'nanjingdong', name:'난징동루 거리 구경', zh:'南京东路', cat:'tour', lat:31.2360, lng:121.4800, amap:'https://surl.amap.com/2OzchHMEeIr', def:[1,4,'16:30'], tip:'미니소/탑토이/팝마트 등 쇼핑 가득. 쑥떡·나비파이 간식 맛보기. 꼬마열차(원웨이) 타보기도 굿'},
+ {id:'bund', name:'와이탄', zh:'外滩', cat:'tour', lat:31.2380, lng:121.4890, amap:'https://surl.amap.com/jFdqSWOk3uE', def:[1,5,'18:00'], tip:'점등 순간이 가장 예뻐요! 동계 18:00 / 하계 19:00 점등. 시계탑(강해관) 앞 횡단보도가 메인 포토존'},
+ {id:'lamb', name:'헌지우이치엔 양꼬치', zh:'很久以前羊肉串 (제1백화점점)', cat:'food', lat:31.2345, lng:121.4735, amap:'https://surl.amap.com/fRR50bEO9Ay', def:[1,6,'20:00'], tip:'위챗으로 원격 줄서기(3km 이내). 제일백화점점 웨이팅 극악 → 저녁이면 오후 2~3시에 웨이팅 걸기! 30팀당 1시간 계산. 2인 4~5만원'},
+ // ---- Day 2
+ {id:'sijiminfu', name:'사계민복 (베이징덕)', zh:'四季民福烤鸭店 (북와이탄점)', cat:'food', lat:31.2470, lng:121.4880, amap:'https://surl.amap.com/5ru2Ldw116a2', def:[2,1,'10:30'], tip:'정통 베이징덕 가성비 맛집, 대존맛. 오픈런(10:30) 또는 따종디엔핑 예약(중국번호 185-1234-5678 입력). 오리 반마리+전병+깐풍새우 조합. 2인 5~7만원. 물티슈 유료 주의'},
+ {id:'wukang', name:'우캉루 & 안푸루', zh:'武康路 & 安福路 (우캉맨션)', cat:'tour', lat:31.2064, lng:121.4373, amap:'https://surl.amap.com/cZiRjXEp48D', def:[2,2,'12:00'], tip:'우캉맨션 → 13de marzo 걸으며 구경. 화장실 없음 주의!! (Ferguson Lane 2층 / 다인몰 서점 이용, 휴지 지참)'},
+ {id:'kprovgov', name:'대한민국 임시정부 청사', zh:'大韩民国临时政府旧址', cat:'tour', lat:31.2185, lng:121.4725, amap:'https://surl.amap.com/4li62Wv7J6Oy', def:[2,3,'14:00'], tip:'발권 마감 16:30! 여권 지참 필수. 내부 촬영 제한'},
+ {id:'xintiandi', name:'신천지 쇼핑 투어', zh:'新天地', cat:'shop', lat:31.2205, lng:121.4755, amap:'https://surl.amap.com/RWh8wuB5Dn', def:[2,4,'15:30'], tip:'온러닝·UGG·젠틀몬스터 등 힙 브랜드 총집합. 유럽 노천카페 분위기. 시간 순삭 주의'},
+ {id:'polux', name:'폴럭스 (미슐랭 브런치)', zh:'Polux by Paul Pairet', cat:'cafe', lat:31.2225, lng:121.4745, amap:'https://surl.amap.com/g15see21fgEj', def:[2,5,'16:30'], tip:'프렌치토스트+아이스크림 강추(121위안). 테라스 맛집 — 따종디엔핑 예약 권장, 해지기 전 방문'},
+ {id:'tianzifang', name:'티앤즈팡', zh:'田子坊', cat:'tour', lat:31.2105, lng:121.4670, amap:'https://surl.amap.com/l6mDr1AEfOt', def:[2,6,'18:30'], tip:'인사동st 예술 골목, 소품샵 투어. 블랜버니 찻집이 가장 유명. 규모 작으니 시간 없으면 생략 가능'},
+ {id:'yuyuan', name:'예원 (야경)', zh:'豫园', cat:'tour', lat:31.2270, lng:121.4920, amap:'https://surl.amap.com/l9olb5s124Py', def:[2,7,'19:30'], tip:'전통 야경 끝판왕! 상점가 야경만으로도 충분. 등불축제 기간(1/26~3/3)엔 상점가 입장도 유료 주의'},
+ {id:'dahuchun', name:'대호춘 & 남상만두', zh:'大壶春 & 南翔馒头店', cat:'food', lat:31.2273, lng:121.4910, amap:'https://surl.amap.com/cbymMtg1yeWH', def:[2,8,'20:30'], tip:'대호춘: 생전포(성젠바오) / 남상만두: 샤오롱바오 강추. 두 곳이 맞은편이라 둘 다 먹기 가능!'},
+ // ---- Day 3
+ {id:'jianbing', name:'지엔빙 아침 (두오지구)', zh:'多几谷 (뉴월드 NEW ONE점)', cat:'food', lat:31.2390, lng:121.4853, amap:'https://surl.amap.com/WNtJBkS5oA', def:[3,1,'10:00'], tip:'로컬 조식 지엔빙을 가장 위생적으로! 양 많으니 2인 1개. 배달 주문도 추천'},
+ {id:'disney', name:'상하이 디즈니랜드', zh:'上海迪士尼乐园', cat:'tour', lat:31.1440, lng:121.6570, amap:'https://surl.amap.com/2mhckWu1v8Vh', def:[3,2,'11:30'], tip:'10일 전 얼리버드 티켓이 최저가(트립닷컴/클룩/마리트 비교). 실물 여권 필수! 주토피아+트론 필수 탑승. 간식·음료 반입 가능. 공식 앱으로 대기시간 확인'},
+ {id:'fireworks', name:'일루미네이트 불꽃놀이', zh:'디즈니랜드 內', cat:'tour', lat:31.1445, lng:121.6575, def:[3,3,'21:15'], tip:'보통 21:15, 시즌 따라 변동 — 앱에서 확인! 명당 잡기보다 그 시간에 놀이기구 하나 더 타는 것도 꿀팁. 귀가 택시는 메인 주차장 말고 국룰 스팟에서: https://surl.amap.com/fDybl4eA37Z'},
+ {id:'hongkuijia', name:'홍쿠이지아 (마늘 롱샤)', zh:'红盔甲·小龙虾 (인민광장점)', cat:'food', lat:31.2290, lng:121.4830, amap:'https://surl.amap.com/1WwTYnrRdV2', def:[3,4,'22:30'], tip:'디즈니 끝나고 가는 야식 맛집. 마늘롱샤+면사리 필수, 오이무침·옥수수 굿. 인민광장점 웨이팅 심함(밤 11시에 1시간+) — 따종디엔핑 원격 줄서기. 2인 5~6만원'},
+ // ---- Day 4
+ {id:'nbund', name:'북와이탄 공원 (실버에그)', zh:'北外滩滨江绿地', cat:'tour', lat:31.2478, lng:121.4955, amap:'https://surl.amap.com/hLC7WmC353', def:[4,1,'10:30'], tip:'한적하게 동방명주 뷰 즐기는 숨은 명당. 실버에그(银色巨蛋) 앞 인증샷 + 엘리베이터 문 열리는 순간 동방명주 뷰!'},
+ {id:'manner', name:'매너커피 (북와이탄점)', zh:'Manner Coffee 国客滨江店', cat:'cafe', lat:31.2480, lng:121.4972, amap:'https://surl.amap.com/4cDsoYzL1odpM', def:[4,2,'11:30'], tip:'상하이 국민 커피. 북와이탄점은 동방명주 뷰 끝내줌. 씨솔트 치즈 라떼 강추'},
+ {id:'dimdimsum', name:'점도덕 (광동 딤섬)', zh:'点都德 (白玉兰广场점)', cat:'food', lat:31.2495, lng:121.4935, amap:'https://surl.amap.com/lxN4prUh6F6', def:[4,3,'13:00'], tip:'광동식 딤섬의 정석. 홍미창펀·하가우 초강추. 기본 차 주문 필수. 후식은 옆건물 패왕차희 밀크티!'},
+ {id:'lujiazui', name:'루자쭈이 육교', zh:'陆家嘴 (지하철 6번 출구)', cat:'tour', lat:31.2385, lng:121.4990, amap:'https://surl.amap.com/2x5QXaG9lckj', def:[4,4,'16:00'], tip:'6번 출구 에스컬레이터로 올라가면 상하이 3대 타워가 한눈에! 미래도시 포토존, 낮/밤 모두 예뻐요'},
+ {id:'superbrand', name:'정대광장 (홀리랜드 등)', zh:'正大广场', cat:'shop', lat:31.2380, lng:121.4975, amap:'https://surl.amap.com/4A9DurrI6u0', def:[4,5,'17:30'], tip:'홀리랜드 수건케이크(보냉 포장 OK), 미니소·여인초 핸드크림·토끼사탕 등 기념품 스팟. 쇼핑 중간중간 페이다추 웨이팅 체크!'},
+ {id:'feidachu', name:'페이다추 (고추고기볶음)', zh:'费大厨辣椒炒肉 (정대광장점)', cat:'food', lat:31.2381, lng:121.4977, amap:'https://surl.amap.com/3e5OzLHPBcdQ', def:[4,6,'19:00'], tip:'갓 지은 밥+고추고기볶음, 한국인 입맛 저격. 아이스 레몬티 필수. 위챗으로 미리 줄서기. 2인 2~3만원'},
+ {id:'footmassage', name:'정원원 발마사지', zh:'郑远元专业修脚房', cat:'etc', lat:31.2320, lng:121.4750, def:[4,7,'21:00'], tip:'가성비 로컬 발마사지 체인(1인 2.5만원 내외). 따종디엔핑 쿠폰 O. 지점 많으니 가까운 곳으로! (깔끔한 샵 원하면 도원향/킹다오/강준양생)'},
+ // ---- Day 5
+ {id:'sudimsum', name:'수딤섬 (브런치)', zh:'苏小柳 (신세계백화점 시티점)', cat:'food', lat:31.2340, lng:121.4720, amap:'https://surl.amap.com/lpeuzj0X5vR', def:[5,1,'10:30'], tip:'가성비 정통 딤섬. 샤오롱바오 & 동파육 찐빵 초초강추! 투어 전 든든하게 먹어두기. 2인 2~3만원'},
+ {id:'lillian', name:'릴리안 에그타르트 (포장)', zh:'莉莲蛋挞 (신세계성점)', cat:'cafe', lat:31.2341, lng:121.4722, amap:'https://surl.amap.com/2osUleU5c3by', def:[5,2,'11:30'], tip:'인생 타르트! 기본맛 무조건. 수딤섬과 같은 백화점이라 동선 깔끔. 버스에서 마실 헤이티/루이싱도 미리 주문해두면 센스 만점'},
+ {id:'wuzhen_e', name:'우전 동책 (수향마을)', zh:'乌镇 东栅', cat:'tour', lat:30.7460, lng:120.4850, def:[5,3,'15:00'], tip:'투어는 인민광장 인근 집결(12:30경 출발, 편도 3시간). 실물 여권 필수!! 나룻배 포함 투어 강추(서책 나룻배는 비쌈)'},
+ {id:'wuzhen_w', name:'우전 서책 & 야경', zh:'乌镇 西栅', cat:'tour', lat:30.7440, lng:120.4740, def:[5,4,'18:00'], tip:'일몰~야경이 정말 예뻐요. 추천 간식: 무떡·화덕만두·꽃모양 떡 (저렴+맛있음, 줄 주의)'},
+ {id:'haidilao', name:'하이디라오 훠궈', zh:'海底捞火锅 (인민광장점)', cat:'food', lat:31.2330, lng:121.4740, amap:'https://surl.amap.com/lSlI3hYf4cc', def:[5,5,'21:30'], tip:'아침 7시까지 운영, 투어 피로 녹이기 최적. 탕은 토마토/기본/백탕 추천(마라탕 매움 주의). 반판 주문 가능. 2인 5~6만원'},
+ // ---- Day 6
+ {id:'checkout', name:'호텔 체크아웃 (짐 맡기기)', zh:'', cat:'etc', useHotel:true, def:[6,1,'10:00'], tip:'짐은 호텔에 맡기고 마지막 일정 가볍게! 공항 가기 전 다시 들러야 하니 동선 고려'},
+ {id:'sbreserve', name:'스타벅스 리저브 로스터리', zh:'星巴克臻选上海烘焙工坊', cat:'cafe', lat:31.2280, lng:121.4560, amap:'https://surl.amap.com/O8rmjTz1jgCE', def:[6,2,'10:30'], tip:'세계 최대 규모! 상하이 한정 머그·텀블러 굿즈는 선물용으로 굿. 베이커리 다양해 브런치도 추천'},
+ {id:'lvpopup', name:'루이비통 더 루이스 팝업', zh:'LV路易威登非凡之旅', cat:'shop', lat:31.2282, lng:121.4565, amap:'https://surl.amap.com/gFvvB5MD2aa', def:[6,3,'11:30'], tip:'외관 인증샷 필수! 내부 관람은 위챗 미니프로그램 사전 예약(현장 QR 웨이팅도 가능, 전화번호 인증 필요)'},
+ {id:'lailai', name:'라이라이 샤오롱 (점심)', zh:'莱莱小笼 (미슐랭)', cat:'food', lat:31.2285, lng:121.4600, amap:'https://surl.amap.com/2Vkn8gln1mbdr', def:[6,4,'12:30'], tip:'난징시루·장원 인근 미슐랭 샤오롱바오 맛집. 이 근처에 AMAM 베이커리, 블루보틀 장원점, 이디엔디엔도 있어요'},
+ {id:'mart', name:'마트 기념품 쇼핑 (올레/허마)', zh:'Ole精品超市 / 盒马鲜生', cat:'shop', lat:31.2330, lng:121.4750, def:[6,5,'14:00'], tip:'올레: 프리미엄 식재료·기념품 쾌적 / 허마선생: 알리바바 신개념 마트. 레이즈 감자칩 이색맛, 토끼사탕, 차 세트 추천. 한자 검색해서 근처 지점으로!'},
+ // ---- 추가 관광지
+ {id:'panlong', name:'판롱티엔디 (신상 수향마을)', zh:'上海蟠龙天地', cat:'tour', lat:31.1930, lng:121.2900, amap:'https://surl.amap.com/2CkKEePn14f5b', tip:'지하철로 갈 수 있는 신상 수향마을. 현대적 감각+전통 건축 복합 공간'},
+ {id:'zhujiajiao', name:'주가각 (수향마을)', zh:'朱家角镇', cat:'tour', lat:31.1116, lng:121.0532, amap:'https://surl.amap.com/gzSwEsphb81', tip:'상하이 근교 접근성 1등 정통 수향마을. 규모 크고 나룻배 체험 좋음. 우전이 멀어 부담되면 여기!'},
+ {id:'qibao', name:'치바오 (로컬 수향마을)', zh:'七宝老街', cat:'tour', lat:31.1560, lng:121.3480, amap:'https://surl.amap.com/xUtDGm17NS', tip:'시내에서 가까워 짧은 일정에 굿. 길거리 간식과 로컬 분위기'},
+ {id:'jingan', name:'정안사', zh:'静安寺', cat:'tour', lat:31.2235, lng:121.4455, amap:'https://surl.amap.com/guZtq5XO4UF', tip:'빌딩 숲 한복판 황금빛 사찰, 밤에 더 웅장. 근처 맛집·카페 많아 반나절 코스 강추'},
+ {id:'zhangyuan', name:'장원 (난징시루 골목)', zh:'张园', cat:'tour', lat:31.2280, lng:121.4595, amap:'https://surl.amap.com/4i0DKUBv1B6tU', tip:'옛 대저택 개조 럭셔리 쇼핑·전시 공간. 명품 팝업+세련된 카페 성지 (블루보틀 장원점)'},
+ {id:'1000trees', name:'천안천수 (1000 Trees)', zh:'天安千树', cat:'tour', lat:31.2480, lng:121.4440, amap:'https://surl.amap.com/1X0aBVcK7rg', tip:'수천 그루 나무가 심어진 독특한 건물. 현대 건축 사진 명소'},
+ {id:'cruise', name:'황푸강 유람선', zh:'黄浦江游览 (십육포 부두)', cat:'tour', lat:31.2310, lng:121.4930, tip:'푸동&와이탄 야경 감상, 점등 이후 탑승 추천. 가족여행 강추. 클룩 5% 할인코드: YOONJEJU'},
+ {id:'pudongart', name:'푸동미술관', zh:'浦东美术馆', cat:'tour', lat:31.2405, lng:121.4950, amap:'https://surl.amap.com/25dNU9A172Ki', tip:'장 누벨 설계 랜드마크. 유리창 너머 와이탄 뷰 — 예술+인생샷 동시에'},
+ {id:'pearl', name:'동방명주 전망대', zh:'东方明珠', cat:'tour', lat:31.2397, lng:121.4998, amap:'https://surl.amap.com/398K5ULf1wczy', tip:'투명 유리바닥 전망대. 지하 상하이 역사박물관도 볼거리. 해질녘 노을 타임 추천'},
+ {id:'shtower', name:'상하이 타워 전망대', zh:'上海中心大厦', cat:'tour', lat:31.2336, lng:121.5055, amap:'https://surl.amap.com/hTlGMXAYaTR', tip:'중국 최고층 빌딩 118층 시티뷰 + 세계 최고 속도 엘리베이터'},
+ {id:'stage', name:'The Stage 전망대', zh:'白玉兰观景台', cat:'tour', lat:31.2490, lng:121.4930, amap:'https://surl.amap.com/1caJyTwVgZP', tip:'요즘 뜨는 신상 전망대(사람 적음). 와이탄·루자쭈이 스카이라인 360도. 2인 할인 O'},
+ // ---- 추가 맛집
+ {id:'jiajia', name:'가가탕포 (샤오롱바오)', zh:'佳家汤包 (인민광장점)', cat:'food', lat:31.2360, lng:121.4700, amap:'https://surl.amap.com/1sJP1sWx1g6HJ', tip:'현지인 픽 가성비 샤오롱바오. 피가 얇고 육즙 진함'},
+ {id:'xiaoyang', name:'소양생전 + 레드립스', zh:'小杨生煎 + 红唇串串香 (훙이광장)', cat:'food', lat:31.2380, lng:121.4830, amap:'https://surl.amap.com/mtSWaYm185FU', tip:'성젠바오 + 국물없는 마라탕(마라반) 조합이 한국인 픽! 두 곳이 붙어 있음. 배달도 굿'},
+ {id:'oldalley', name:'올드앨리 누들샵', zh:'沪西老弄堂面馆 (정안사점)', cat:'food', lat:31.2270, lng:121.4440, amap:'https://surl.amap.com/2EJmLXt7BcEk', tip:'찐 로컬 파기름 비빔면 성지. 돈까스 곁들이기 추천'},
+ {id:'renhe', name:'인화관 (미슐랭 1스타)', zh:'人和馆 (정안사점)', cat:'food', lat:31.2245, lng:121.4440, amap:'https://surl.amap.com/2WtBVm6Fs0Pa', tip:'복고풍 인테리어. 게살볶음밥·동파육·칠리새우. 가격대 있는 편'},
+ {id:'laojishi', name:'라오지스 (상하이 가정식)', zh:'老吉士', cat:'food', lat:31.2060, lng:121.4370, tip:'상하이 3대 가정식, 홍소육 시그니처. 우캉맨션/정안사/ifc몰 지점'},
+ {id:'grandmother', name:'그랜드마더 (가정식)', zh:'上海姥姥家常饭馆 (푸저우루점)', cat:'food', lat:31.2350, lng:121.4880, amap:'https://surl.amap.com/43gbi9qlk93O', tip:'와이탄 근처. 마파두부·볶음밥·홍소육 유명. 웨이팅 심하니 유의'},
+ {id:'guimanlong', name:'꾸이만롱 (항저우 요리)', zh:'桂满陇', cat:'food', lat:31.2350, lng:121.4760, tip:'화려한 인테리어, 가성비 항저우 요리. 홍소육(동파육) 맛집. 지점 여러 곳'},
+ {id:'dumplingking', name:'동북사계교자왕', zh:'东北四季饺子王 (화산루점)', cat:'food', lat:31.2050, lng:121.4360, amap:'https://surl.amap.com/mp55BOur1nK', tip:'우캉맨션 근처. 꿔바로우+만두 동북요리. 호불호 없는 맛'},
+ // ---- 추가 카페/디저트
+ {id:'chagee', name:'패왕차희 (밀크티)', zh:'霸王茶姬', cat:'cafe', lat:31.2360, lng:121.4790, tip:'자스민 밀크티 백아절현 유명, 장원영 픽은 청청나산. 크게 달지 않고 건강한 맛. 지점 여러 곳'},
+ {id:'moyogurt', name:'모어 요거트', zh:'茉酸奶', cat:'cafe', lat:31.2355, lng:121.4785, tip:'꾸덕한 요거트. 아보카도 요거트 스무디 든든한 간식 강추. 지점 여러 곳'},
+ {id:'amashougzuo', name:'아마수작 (모찌 밀크티)', zh:'阿嬷手作', cat:'cafe', lat:31.2210, lng:121.4750, tip:'모찌 들어간 프리미엄 밀크티. 위챗으로 미리 예약. 지점 여러 곳'},
+ {id:'yidiandian', name:'이디엔디엔 (밀크티)', zh:'1点点', cat:'cafe', lat:31.2300, lng:121.4590, amap:'https://surl.amap.com/fY8YwCk5oS', tip:'가성비 굿 대중 밀크티 체인. 토핑 조합 다양'},
+ {id:'parkhotel', name:'파크호텔 베이커리 (나비파이)', zh:'国际饭店西饼屋', cat:'cafe', lat:31.2335, lng:121.4700, amap:'https://surl.amap.com/ApODXop14VA', tip:'나비파이 원조 매장. 버터향 가득 바삭'},
+ {id:'prada', name:'프라다 롱자이 카페', zh:'Prada 荣宅', cat:'cafe', lat:31.2270, lng:121.4530, amap:'https://surl.amap.com/2lwOZAhU1pZ', tip:'프라다가 복원한 고택 갤러리+카페. 예약 권장(위챗). 시간대별 메뉴 다름'},
+ {id:'conde', name:'CONDE PUB (야경 펍)', zh:'CONDE酒吧', cat:'cafe', lat:31.2450, lng:121.4930, amap:'https://surl.amap.com/41EhaEm148w6', tip:'동방명주 뷰 야경 끝판왕 펍. 예약 필수!'},
+ {id:'marzo', name:'13 DE MARZO 카페 (곰돌이)', zh:'13DE MARZO CAFÉ (안푸루점)', cat:'cafe', lat:31.2185, lng:121.4430, amap:'https://surl.amap.com/evBmXrEm97g', tip:'가방에 곰돌이 달린 옷/음료로 유명한 힙 카페. 우캉루 쪽이 규모 더 귀여움'},
+ {id:'bnc', name:'B&C 버터와 빵', zh:'黄油与面包 (신천지점)', cat:'cafe', lat:31.2210, lng:121.4760, amap:'https://surl.amap.com/6VGzkTgc11I', tip:'신천지 빵 맛집'},
+ {id:'venchi', name:'Venchi 젤라또', zh:'闻绮 (신천지점)', cat:'cafe', lat:31.2225, lng:121.4748, amap:'https://surl.amap.com/hpIUl8qs50W', tip:'이탈리아 유명 젤라또'},
+ {id:'blanbunny', name:'블랜버니 찻집', zh:'布兰兔的植物庄园 (티앤즈팡점)', cat:'cafe', lat:31.2106, lng:121.4672, amap:'https://surl.amap.com/2oFekJytRdfo', tip:'예쁜 틴케이스 차 — 선물용 최고 인기'},
+ // ---- 추가 쇼핑
+ {id:'mmworld', name:'M&M 월드', zh:'M&M豆巧克力旗舰店', cat:'shop', lat:31.2350, lng:121.4750, amap:'https://surl.amap.com/bG4cK2us5Hd', tip:'상하이 한정 굿즈·초콜릿. 난징동루 한가운데'},
+ {id:'minisoland', name:'미니소랜드 (글로벌 1호점)', zh:'名创优品IP乐园', cat:'shop', lat:31.2365, lng:121.4790, amap:'https://surl.amap.com/1bHx7giO88H', tip:'난징동루에서 가장 큰 미니소'},
+ {id:'wmanagement', name:'W.Management', zh:'第一百货南京东路店', cat:'shop', lat:31.2346, lng:121.4736, amap:'https://surl.amap.com/2PnmsmOJb61Y', tip:'하이틴+MZ 감성 의류. 양꼬치 웨이팅하며 가기 좋음(같은 백화점)'},
+ {id:'tosummer', name:'투 썸머 (프리미엄 향수)', zh:'观夏', cat:'shop', lat:31.2380, lng:121.4890, tip:'중국 프리미엄 향수 브랜드, 패키지 고급 — 선물 추천. 와이탄/우캉루 매장'},
+ {id:'freshhema', name:'허마선생 (마트)', zh:'盒马鲜生', cat:'shop', lat:31.2320, lng:121.4770, tip:'알리바바 신개념 마트, 구경 재미 큼. 레이즈 이색맛·화이트래빗 캔디·차 세트'},
+];
+
+const AIRPORT = {name:'푸동공항', zh:'浦东国际机场', lat:31.1443, lng:121.8083};
+const DAY_COLORS = ['#e05d2c','#0f7b6c','#3b6fc9','#b13a86','#c98a12','#5b57c7','#2a8f4e','#8a5a3b','#c74b5e','#3c8f9e'];
+const CATS = [['all','전체'],['tour','🏛️ 관광'],['food','🥢 맛집'],['cafe','🧁 카페'],['shop','🛍️ 쇼핑'],['etc','📌 기타'],['custom','⭐ 내 장소']];
+const CATLABEL = {tour:'관광',food:'맛집',cafe:'카페',shop:'쇼핑',etc:'기타',custom:'내 장소'};
+
+/* ============================================================ state ============================================================ */
+const LS_KEY = 'shanghai-trip-v1';
+let state = null;
+let uidSeq = 1;
+const uid = () => 'i' + (uidSeq++) + '_' + Math.random().toString(36).slice(2,6);
+
+function defaultState(){
+  const days = [];
+  for(let d=1; d<=6; d++){
+    const items = PLACES.filter(p=>p.def && p.def[0]===d)
+      .sort((a,b)=>a.def[1]-b.def[1])
+      .map(p=>({uid:uid(), pid:p.id, time:p.def[2], memo:''}));
+    days.push(items);
+  }
+  return {
+    settings:{ startDate: nextMonth(), nights:5, arrTime:'12:00', depTime:'18:00', hotel:'h_ji', hotelInRoute:true },
+    days, activeDay:0, custom:[], coordFix:{}, mapMode:'day'
+  };
+}
+function nextMonth(){ const d=new Date(); d.setDate(d.getDate()+30); return d.toISOString().slice(0,10); }
+
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+function load(){
+  try{ const s = JSON.parse(localStorage.getItem(LS_KEY)); if(s && s.days) return s; }catch(e){}
+  return null;
+}
+
+/* place lookup (built-in + custom), 좌표 보정 반영 */
+function getPlace(pid){
+  let p = PLACES.find(x=>x.id===pid) || state.custom.find(x=>x.id===pid);
+  if(!p) return null;
+  const out = Object.assign({}, p);
+  if(p.useHotel){ const h = getHotel(); out.lat=h.lat; out.lng=h.lng; out.zh = h.name; }
+  const fix = state.coordFix[pid];
+  if(fix){ out.lat=fix[0]; out.lng=fix[1]; }
+  return out;
+}
+function getHotel(){
+  const h = HOTELS.find(x=>x.id===state.settings.hotel) || state.custom.find(x=>x.id===state.settings.hotel) || HOTELS[0];
+  const fix = state.coordFix[h.id];
+  return fix ? Object.assign({},h,{lat:fix[0],lng:fix[1]}) : h;
+}
+const numDays = () => state.settings.nights + 1;
+
+/* ============================================================ header controls ============================================================ */
+const $ = s => document.querySelector(s);
+
+function initHeader(){
+  const st = state.settings;
+  $('#startDate').value = st.startDate;
+  $('#arrTime').value = st.arrTime;
+  $('#depTime').value = st.depTime;
+  $('#hotelInRoute').checked = st.hotelInRoute;
+  const sel = $('#hotelSelect');
+  sel.innerHTML='';
+  HOTELS.concat(state.custom.filter(c=>c.isHotel)).forEach(h=>{
+    const o=document.createElement('option'); o.value=h.id; o.textContent=h.name; sel.appendChild(o);
+  });
+  const oc=document.createElement('option'); oc.value='__custom'; oc.textContent='＋ 직접 지정 (지도 클릭)'; sel.appendChild(oc);
+  sel.value = st.hotel;
+  $('#nightsLabel').textContent = `${st.nights}박 ${st.nights+1}일`;
+
+  $('#startDate').onchange = e=>{ st.startDate=e.target.value; refresh(); };
+  $('#arrTime').onchange = e=>{ st.arrTime=e.target.value; refresh(); };
+  $('#depTime').onchange = e=>{ st.depTime=e.target.value; refresh(); };
+  $('#hotelInRoute').onchange = e=>{ st.hotelInRoute=e.target.checked; refresh(); };
+  sel.onchange = e=>{
+    if(e.target.value==='__custom'){ startHotelPick(); sel.value=st.hotel; return; }
+    st.hotel=e.target.value; refresh();
+  };
+  $('#nMinus').onclick = ()=> changeNights(-1);
+  $('#nPlus').onclick = ()=> changeNights(1);
+  $('#btnExport').onclick = ()=> openIO('export');
+  $('#btnImport').onclick = ()=> openIO('import');
+  $('#btnReset').onclick = ()=>{
+    if(confirm('일정을 기본(윤제주 5박 6일 코스)으로 초기화할까요? 내 장소·메모도 사라집니다.')){
+      localStorage.removeItem(LS_KEY); state = defaultState(); initAll();
+    }
+  };
+}
+function changeNights(delta){
+  const st=state.settings;
+  const n = Math.min(9, Math.max(1, st.nights+delta));
+  if(n===st.nights) return;
+  if(n < st.nights){
+    // 줄어드는 날의 일정은 마지막 남는 날 뒤로 합치지 않고 경고 후 삭제 대신 마지막 날로 이동
+    const removed = state.days.slice(n+1).flat();
+    state.days = state.days.slice(0, n+1);
+    if(removed.length){ state.days[state.days.length-1].push(...removed); }
+  }else{
+    while(state.days.length < n+1) state.days.push([]);
+  }
+  st.nights = n;
+  if(state.activeDay >= numDays()) state.activeDay = numDays()-1;
+  $('#nightsLabel').textContent = `${n}박 ${n+1}일`;
+  refresh();
+}
+
+/* ============================================================ library ============================================================ */
+let libCat = 'all';
+function renderCatTabs(){
+  const box = $('#catTabs'); box.innerHTML='';
+  CATS.forEach(([k,label])=>{
+    const b=document.createElement('button'); b.textContent=label;
+    if(k===libCat) b.classList.add('on');
+    b.onclick=()=>{ libCat=k; renderCatTabs(); renderLibrary(); };
+    box.appendChild(b);
+  });
+}
+function renderLibrary(){
+  const q = $('#libSearch').value.trim().toLowerCase();
+  const box = $('#libList'); box.innerHTML='';
+  const inTrip = new Set(state.days.flat().map(i=>i.pid));
+  let list = PLACES.concat(state.custom.filter(c=>!c.isHotel));
+  if(libCat==='custom') list = state.custom.filter(c=>!c.isHotel);
+  else if(libCat!=='all') list = list.filter(p=>p.cat===libCat);
+  if(q) list = list.filter(p=> (p.name+(p.zh||'')+(p.tip||'')).toLowerCase().includes(q));
+  const note=document.createElement('div'); note.className='libnote';
+  note.textContent = `${list.length}곳 · ✓는 일정에 이미 있는 곳`;
+  box.appendChild(note);
+  list.forEach(p=>{
+    const el=document.createElement('div'); el.className='libitem'; el.dataset.pid=p.id;
+    el.innerHTML = `<div class="nm">${inTrip.has(p.id)?'✓ ':''}${esc(p.name)}</div>
+      <div class="zh">${esc(p.zh||'')}</div>
+      <div class="cat">${CATLABEL[p.cat]||''}</div>
+      <button class="addbtn" title="현재 날짜에 추가">＋</button>`;
+    el.querySelector('.addbtn').onclick = (e)=>{ e.stopPropagation(); addToDay(p.id, state.activeDay); };
+    box.appendChild(el);
+  });
+  if(libSortable) libSortable.destroy();
+  libSortable = Sortable.create(box, {
+    group:{name:'trip', pull:'clone', put:false},
+    sort:false, draggable:'.libitem',
+    setData:(dt)=>dt.setData('text',''),
+  });
+}
+let libSortable = null;
+$('#libSearch') && ($('#libSearch').oninput = ()=>renderLibrary());
+
+function addToDay(pid, dayIdx, index){
+  const item = {uid:uid(), pid, time:'', memo:''};
+  if(index==null) state.days[dayIdx].push(item);
+  else state.days[dayIdx].splice(index,0,item);
+  refresh();
+}
+
+/* ============================================================ board ============================================================ */
+const DOW = ['일','월','화','수','목','금','토'];
+function dayDate(i){
+  const d = new Date(state.settings.startDate+'T00:00:00');
+  d.setDate(d.getDate()+i);
+  return d;
+}
+function renderTabs(){
+  const box=$('#dayTabs'); box.innerHTML='';
+  for(let i=0;i<numDays();i++){
+    const b=document.createElement('button');
+    const d=dayDate(i);
+    b.innerHTML = `Day ${i+1}<span class="dt">${d.getMonth()+1}/${d.getDate()} (${DOW[d.getDay()]})</span>`;
+    b.style.setProperty('--tabclr', DAY_COLORS[i%DAY_COLORS.length]);
+    if(i===state.activeDay) b.classList.add('on');
+    b.onclick=()=>{ state.activeDay=i; refresh(); };
+    box.appendChild(b);
+  }
+}
+
+let daySortable=null;
+function renderDay(){
+  const i = state.activeDay;
+  const color = DAY_COLORS[i%DAY_COLORS.length];
+  const box=$('#dayList'); box.innerHTML='';
+  const st=state.settings;
+  const hotel=getHotel();
+
+  // 상단 앵커
+  if(i===0){
+    box.appendChild(anchorEl('✈️', `${st.arrTime} 푸동공항 도착`, '디디택시 B2층 탑승 or 트립닷컴 픽업(가족여행 강추)'));
+  }else if(st.hotelInRoute){
+    box.appendChild(anchorEl('🏨', `${esc(hotel.name)} 출발`, hotel.zh||'', true));
+  }
+
+  // 카드 목록
+  const ul=document.createElement('div'); ul.className='dayitems'; ul.id='dayItems';
+  const items = state.days[i];
+  if(!items.length){
+    const eh=document.createElement('div'); eh.className='empty-hint';
+    eh.textContent='왼쪽 라이브러리에서 장소를 드래그하거나 ＋ 버튼으로 추가하세요';
+    ul.appendChild(eh);
+  }
+  items.forEach((it,idx)=>{
+    if(idx>0 || i===0 || st.hotelInRoute) ul.appendChild(segEl(idx));
+    ul.appendChild(cardEl(it, idx, color));
+  });
+  box.appendChild(ul);
+
+  // 하단 앵커
+  const isLast = i===numDays()-1;
+  if(items.length && (st.hotelInRoute || isLast)) box.appendChild(segEl(items.length));
+  if(isLast){
+    box.appendChild(anchorEl('✈️', `${st.depTime} 푸동공항 출발`, '2~3시간 전 공항 도착 권장 · 짐 찾으러 호텔 경유 잊지 마세요!'));
+  }else if(st.hotelInRoute){
+    box.appendChild(anchorEl('🏨', `${esc(hotel.name)} 복귀`, '', true));
+  }
+
+  const foot=document.createElement('div'); foot.className='dayfoot'; foot.id='dayFoot';
+  foot.innerHTML = `장소 <b>${items.length}</b>곳`;
+  box.appendChild(foot);
+
+  if(daySortable) daySortable.destroy();
+  daySortable = Sortable.create(ul, {
+    group:'trip', animation:150, handle:'.badge', draggable:'.card',
+    filter:'.seg,.empty-hint',
+    onAdd: (ev)=>{
+      // 라이브러리에서 클론된 항목
+      const pid = ev.item.dataset.pid;
+      if(pid){
+        const idx = cardIndexOf(ev.item);
+        ev.item.remove();
+        addToDay(pid, state.activeDay, idx);
+      }
+    },
+    onUpdate: ()=>{ syncFromDom(); refresh(); },
+  });
+}
+function cardIndexOf(el){
+  const cards=[...$('#dayItems').querySelectorAll('.card')];
+  return cards.indexOf(el)>=0 ? cards.indexOf(el) : cards.length;
+}
+function syncFromDom(){
+  const uids=[...$('#dayItems').querySelectorAll('.card')].map(c=>c.dataset.uid).filter(Boolean);
+  const cur=state.days[state.activeDay];
+  const map=Object.fromEntries(cur.map(x=>[x.uid,x]));
+  state.days[state.activeDay]=uids.map(u=>map[u]).filter(Boolean);
+}
+
+function anchorEl(ic, title, sub, isHotel){
+  const el=document.createElement('div'); el.className='anchor'+(isHotel?' hotel':'');
+  el.innerHTML=`<span class="ic">${ic}</span><div><div>${title}</div>${sub?`<small>${esc(sub)}</small>`:''}</div>`;
+  return el;
+}
+function segEl(idx){
+  const el=document.createElement('div'); el.className='seg'; el.dataset.seg=idx;
+  el.innerHTML=`<div class="dotline"></div><span id="seg-${idx}">🚕 계산 중…</span>`;
+  return el;
+}
+function cardEl(it, idx, color){
+  const p=getPlace(it.pid);
+  const el=document.createElement('div'); el.className='card'; el.dataset.uid=it.uid;
+  el.style.setProperty('--dayclr', color);
+  if(!p){ el.innerHTML='<div class="bodyc">(삭제된 장소)</div>'; return el; }
+  const gmap=`https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+  el.innerHTML=`
+    <div class="badge">${idx+1}</div>
+    <div class="bodyc">
+      <div class="l1">
+        <input class="tm" type="time" value="${it.time||''}" title="시간">
+        <span class="nm">${esc(p.name)}</span>
+        <span class="zh">${esc(p.zh||'')}</span>
+      </div>
+      ${p.tip?`<div class="quick">💡 ${esc(p.tip)}</div>`:''}
+      <div class="links">
+        <a href="${gmap}" target="_blank">구글지도 📍</a>
+        ${p.amap?`<a href="${p.amap}" target="_blank">고덕지도 🇨🇳</a>`:''}
+        <button class="memobtn">📝 메모</button>
+      </div>
+      <textarea class="memo" placeholder="우리끼리 메모 (예: 웨이팅 몇 시에 걸기, 예산…)">${esc(it.memo||'')}</textarea>
+    </div>
+    <button class="del" title="일정에서 빼기">✕</button>
+    <button class="toggle">▾ 더보기</button>`;
+  el.querySelector('.tm').onchange=e=>{ it.time=e.target.value; save(); };
+  el.querySelector('.del').onclick=()=>{
+    state.days[state.activeDay]=state.days[state.activeDay].filter(x=>x.uid!==it.uid); refresh();
+  };
+  const toggle=()=>{ el.classList.toggle('open'); el.querySelector('.toggle').textContent=el.classList.contains('open')?'▴ 접기':'▾ 더보기'; };
+  el.querySelector('.toggle').onclick=toggle;
+  el.querySelector('.memobtn').onclick=()=>{ if(!el.classList.contains('open')) toggle(); el.querySelector('.memo').focus(); };
+  el.querySelector('.memo').oninput=e=>{ it.memo=e.target.value; save(); };
+  el.querySelector('.quick') && (el.querySelector('.quick').onclick=toggle);
+  return el;
+}
+
+/* ============================================================ map ============================================================ */
+let map, layerG;
+function initMap(){
+  map = L.map('map',{zoomControl:true}).setView([31.23,121.48],13);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
+    maxZoom:19, attribution:'&copy; OpenStreetMap &copy; CARTO'
+  }).addTo(map);
+  layerG = L.layerGroup().addTo(map);
+  $('#mapModeDay').onclick=()=>{ state.mapMode='day'; $('#mapModeDay').classList.add('on'); $('#mapModeAll').classList.remove('on'); renderMap(); };
+  $('#mapModeAll').onclick=()=>{ state.mapMode='all'; $('#mapModeAll').classList.add('on'); $('#mapModeDay').classList.remove('on'); renderMap(); };
+  map.on('click', onMapClick);
+}
+function numIcon(n,color){
+  return L.divIcon({className:'', html:`<div class="numpin" style="background:${color}"><span>${n}</span></div>`, iconSize:[26,26], iconAnchor:[13,24]});
+}
+function emojiIcon(e){ return L.divIcon({className:'', html:`<div class="iconpin">${e}</div>`, iconSize:[24,24], iconAnchor:[12,20]}); }
+
+/* 하루 경유지 좌표열 만들기: [출발앵커] + items + [도착앵커] */
+function dayWaypoints(i){
+  const st=state.settings, hotel=getHotel(), isLast=i===numDays()-1;
+  const pts=[];
+  if(i===0) pts.push({name:AIRPORT.name, lat:AIRPORT.lat, lng:AIRPORT.lng, anchor:'✈️'});
+  else if(st.hotelInRoute) pts.push({name:hotel.name, lat:hotel.lat, lng:hotel.lng, anchor:'🏨'});
+  state.days[i].forEach((it,k)=>{
+    const p=getPlace(it.pid); if(p) pts.push({name:p.name, lat:p.lat, lng:p.lng, n:k+1, pid:it.pid});
+  });
+  if(isLast) pts.push({name:AIRPORT.name, lat:AIRPORT.lat, lng:AIRPORT.lng, anchor:'✈️'});
+  else if(st.hotelInRoute && state.days[i].length) pts.push({name:hotel.name, lat:hotel.lat, lng:hotel.lng, anchor:'🏨'});
+  return pts;
+}
+
+let routeToken=0;
+function renderMap(){
+  if(!map) return;
+  layerG.clearLayers();
+  const hotel=getHotel();
+  // 호텔 핀(항상)
+  L.marker([hotel.lat, hotel.lng], {icon:emojiIcon('🏨'), draggable:true})
+    .bindPopup(`<b>🏨 ${esc(hotel.name)}</b><br>${esc(hotel.tip||'')}<br><i>핀을 드래그하면 위치가 보정됩니다</i>`)
+    .on('dragend', e=>{ const ll=e.target.getLatLng(); state.coordFix[hotel.id]=[ll.lat,ll.lng]; refresh(); })
+    .addTo(layerG);
+
+  const daysToShow = state.mapMode==='all' ? [...Array(numDays()).keys()] : [state.activeDay];
+  const bounds=[[hotel.lat,hotel.lng]];
+
+  daysToShow.forEach(i=>{
+    const color=DAY_COLORS[i%DAY_COLORS.length];
+    state.days[i].forEach((it,k)=>{
+      const p=getPlace(it.pid); if(!p) return;
+      bounds.push([p.lat,p.lng]);
+      const m=L.marker([p.lat,p.lng],{icon:numIcon(k+1,color), draggable: state.mapMode==='day'})
+        .bindPopup(`<b>Day ${i+1}-${k+1} · ${esc(p.name)}</b><br>${esc(p.zh||'')}${p.tip?'<br>💡 '+esc(p.tip):''}<br><i>핀 드래그 → 위치 보정</i>`)
+        .addTo(layerG);
+      m.on('dragend', e=>{ const ll=e.target.getLatLng(); state.coordFix[it.pid]=[ll.lat,ll.lng]; refresh(); });
+    });
+  });
+
+  // 경로: 활성 날만
+  drawRoute(state.activeDay);
+
+  if(bounds.length>1){
+    try{ map.fitBounds(bounds,{padding:[40,40], maxZoom:15}); }catch(e){}
+  }
+}
+
+/* ---------- routing (OSRM demo, 캐시+폴백) ---------- */
+const routeCache = JSON.parse(localStorage.getItem('sh-routecache')||'{}');
+function cacheKey(a,b){ return [a.lat.toFixed(4),a.lng.toFixed(4),b.lat.toFixed(4),b.lng.toFixed(4)].join(','); }
+function haversine(a,b){
+  const R=6371, dLat=(b.lat-a.lat)*Math.PI/180, dLng=(b.lng-a.lng)*Math.PI/180;
+  const x=Math.sin(dLat/2)**2+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(x));
+}
+function estimate(a,b){
+  const d=haversine(a,b)*1.35;
+  const speed = d>30?70 : d>8?40 : 22; // km/h
+  return {dur: d/speed*3600, dist:d*1000, est:true, geom:[[a.lat,a.lng],[b.lat,b.lng]]};
+}
+async function fetchRoute(a,b){
+  const key=cacheKey(a,b);
+  if(routeCache[key]) return routeCache[key];
+  try{
+    const url=`https://router.project-osrm.org/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=geojson`;
+    const r=await fetch(url); if(!r.ok) throw 0;
+    const j=await r.json(); if(!j.routes||!j.routes[0]) throw 0;
+    const rt=j.routes[0];
+    const res={dur:rt.duration*1.15, dist:rt.distance, est:false, geom:rt.geometry.coordinates.map(c=>[c[1],c[0]])};
+    routeCache[key]=res;
+    try{ localStorage.setItem('sh-routecache', JSON.stringify(routeCache)); }catch(e){}
+    return res;
+  }catch(e){ return estimate(a,b); }
+}
+function fmtDur(s){ const m=Math.round(s/60); return m>=60? `${Math.floor(m/60)}시간 ${m%60}분` : `${m}분`; }
+function fmtDist(m){ return m>=1000? (m/1000).toFixed(1)+'km' : Math.round(m)+'m'; }
+
+async function drawRoute(dayIdx){
+  const token=++routeToken;
+  const pts=dayWaypoints(dayIdx);
+  const color=DAY_COLORS[dayIdx%DAY_COLORS.length];
+  if(pts.length<2){ msg(''); return; }
+  let totalDur=0, totalDist=0, anyEst=false;
+  msg('🚕 이동 경로 계산 중…');
+  for(let k=0;k<pts.length-1;k++){
+    const res=await fetchRoute(pts[k],pts[k+1]);
+    if(token!==routeToken) return; // 최신 요청만 반영
+    totalDur+=res.dur; totalDist+=res.dist; anyEst=anyEst||res.est;
+    if(dayIdx===state.activeDay){
+      L.polyline(res.geom,{color, weight:4, opacity:.75, dashArray:res.est?'6 8':null}).addTo(layerG);
+      const segSpan=document.getElementById(`seg-${k}`);
+      if(segSpan) segSpan.innerHTML=`🚕 <b>${fmtDur(res.dur)}</b> · ${fmtDist(res.dist)}${res.est?' <i>(직선거리 추정)</i>':''}`;
+    }
+  }
+  if(token!==routeToken) return;
+  msg('');
+  const foot=$('#dayFoot');
+  if(foot && dayIdx===state.activeDay){
+    foot.innerHTML=`장소 <b>${state.days[dayIdx].length}</b>곳 · 총 이동 <b>${fmtDur(totalDur)}</b> · <b>${fmtDist(totalDist)}</b> (택시 기준${anyEst?', 일부 추정':''})`;
+  }
+}
+let msgTimer=null;
+function msg(t){
+  const el=$('#mapMsg');
+  if(!t){ el.style.display='none'; return; }
+  el.textContent=t; el.style.display='block';
+}
+
+/* ============================================================ custom place / hotel pick ============================================================ */
+let pickMode=null; // 'place' | 'hotel'
+function onMapClick(e){
+  if(!pickMode) return;
+  const {lat,lng}=e.latlng;
+  if(pickMode==='place'){
+    const nm=$('#cpName').value.trim()||'새 장소';
+    const id='c_'+Date.now();
+    state.custom.push({id, name:nm, zh:'', cat:'custom', lat, lng, tip:'직접 추가한 장소'});
+    addToDay(id, state.activeDay);
+    $('#cpName').value='';
+  }else if(pickMode==='hotel'){
+    const nm=prompt('숙소 이름을 입력하세요','내 숙소');
+    if(nm){
+      const id='ch_'+Date.now();
+      state.custom.push({id, name:nm, zh:'', cat:'custom', lat, lng, isHotel:true, tip:'직접 지정한 숙소'});
+      state.settings.hotel=id;
+      initHeader();
+    }
+  }
+  pickMode=null; $('#cpPick').classList.remove('on'); msg('');
+  refresh();
+}
+$('#cpPick').onclick=()=>{
+  pickMode = pickMode==='place'? null : 'place';
+  $('#cpPick').classList.toggle('on', pickMode==='place');
+  msg(pickMode?'지도를 클릭해 장소 위치를 지정하세요':'');
+};
+function startHotelPick(){ pickMode='hotel'; msg('지도를 클릭해 숙소 위치를 지정하세요'); }
+
+$('#cpSearch').onclick=async ()=>{
+  const q=$('#cpName').value.trim();
+  if(!q){ alert('장소 이름을 먼저 입력하세요'); return; }
+  const box=$('#searchResults'); box.innerHTML='<div class="libnote">검색 중…</div>';
+  try{
+    const url=`https://nominatim.openstreetmap.org/search?format=json&limit=5&accept-language=ko&q=${encodeURIComponent(q+' Shanghai')}`;
+    const r=await fetch(url,{headers:{'Accept':'application/json'}});
+    const j=await r.json();
+    box.innerHTML='';
+    if(!j.length){ box.innerHTML='<div class="libnote">결과 없음 — "지도 클릭으로 지정"을 써보세요</div>'; return; }
+    j.forEach(res=>{
+      const d=document.createElement('div'); d.className='sr'; d.textContent=res.display_name;
+      d.onclick=()=>{
+        const id='c_'+Date.now();
+        state.custom.push({id, name:q, zh:'', cat:'custom', lat:+res.lat, lng:+res.lon, tip:'검색으로 추가한 장소'});
+        addToDay(id, state.activeDay);
+        box.innerHTML=''; $('#cpName').value='';
+      };
+      box.appendChild(d);
+    });
+  }catch(e){ box.innerHTML='<div class="libnote">검색 실패 — 인터넷 연결을 확인하세요</div>'; }
+};
+
+/* ============================================================ export / import ============================================================ */
+function openIO(mode){
+  const dlg=$('#ioDialog');
+  $('#ioTitle').textContent = mode==='export'?'일정 내보내기 (친구에게 이 텍스트를 보내세요)':'일정 가져오기 (받은 텍스트를 붙여넣으세요)';
+  $('#ioText').value = mode==='export'? JSON.stringify(state) : '';
+  $('#ioApply').style.display = mode==='import'?'':'none';
+  $('#ioCopy').style.display = mode==='export'?'':'none';
+  dlg.showModal();
+}
+$('#ioCopy').onclick=()=>{ $('#ioText').select(); document.execCommand('copy'); $('#ioCopy').textContent='복사됨!'; setTimeout(()=>$('#ioCopy').textContent='복사',1500); };
+$('#ioApply').onclick=()=>{
+  try{
+    const s=JSON.parse($('#ioText').value);
+    if(!s.days||!s.settings) throw 0;
+    state=s; save(); $('#ioDialog').close(); initAll();
+  }catch(e){ alert('형식이 올바르지 않습니다. 내보내기로 만든 텍스트 전체를 붙여넣어 주세요.'); }
+};
+
+/* ============================================================ boot ============================================================ */
+function esc(s){ return String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function refresh(){ save(); renderTabs(); renderDay(); renderLibrary(); renderMap(); }
+function initAll(){ initHeader(); renderCatTabs(); refresh(); }
+
+state = load() || defaultState();
+initMap();
+initAll();
+</script>
+</body>
+</html>
