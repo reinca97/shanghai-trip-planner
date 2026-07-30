@@ -203,12 +203,27 @@ dialog textarea{width:100%; height:180px; border:1.5px solid var(--line); border
 dialog .btns{display:flex; gap:8px; margin-top:12px; justify-content:flex-end}
 dialog button{border:1.5px solid var(--ink); background:#fff; border-radius:8px; padding:6px 14px; font-weight:700; font-size:12px}
 dialog button.primary{background:var(--orange); color:#fff}
+
+/* ---------- cloud share ---------- */
+#btnCloud{border:1.5px solid var(--ink); background:#fff; border-radius:10px; padding:6px 12px; font-size:12px; font-weight:700; box-shadow:2px 2px 0 var(--ink); transition:.12s}
+#btnCloud:hover{transform:translate(1px,1px); box-shadow:1px 1px 0 var(--ink)}
+@media(max-width:900px){ #btnCloud{padding:5px 9px} }
+#cloudDialog .cfield{display:flex; align-items:center; gap:8px; margin-bottom:8px}
+#cloudDialog .cfield label{flex:0 0 64px; font-size:12px; font-weight:700; color:var(--ink2)}
+#cloudDialog .cfield input{flex:1; min-width:0; border:1.5px solid var(--line); border-radius:8px; padding:6px 9px; background:#fff; outline:none}
+#cloudDialog .cfield input:focus{border-color:var(--orange)}
+#cSlots{max-height:180px; overflow-y:auto; margin-top:8px}
+#cloudDialog .slot{display:flex; align-items:center; justify-content:space-between; gap:8px; background:#fff; border:1.5px solid var(--line); border-radius:8px; padding:6px 9px; margin-top:6px; font-size:12px}
+#cloudDialog .slot .slotbtns{display:flex; gap:5px; flex:0 0 auto}
+#cloudDialog .slot button{padding:3px 8px; font-size:11px}
+#cMsg{font-size:12px; color:var(--ink2); margin-top:10px; min-height:16px}
 </style>
 </head>
 <body class="v-plan">
 
 <header>
   <h1>상하이 트립 플래너 <em>🍊</em></h1>
+  <button id="btnCloud" title="친구와 일정 공유">☁️ 공유</button>
   <button id="settingsToggle">⚙️ 설정</button>
   <div class="hgroup"><label>출발일</label><input type="date" id="startDate"></div>
   <div class="hgroup"><label>기간</label>
@@ -268,6 +283,20 @@ dialog button.primary{background:var(--orange); color:#fff}
   <button data-view="map"><span>🗺️</span>지도</button>
   <button data-view="lib"><span>➕</span>장소</button>
 </nav>
+
+<dialog id="cloudDialog">
+  <h3>☁️ 친구와 일정 공유</h3>
+  <div class="cfield"><label>방 코드</label><input id="cRoom" placeholder="예: our-shanghai (영문/숫자/-)"></div>
+  <div class="cfield"><label>비밀번호</label><input id="cPw" type="password" placeholder="친구와 약속한 비밀번호"></div>
+  <div class="cfield"><label>내 이름</label><input id="cWho" placeholder="예: 수연"></div>
+  <div class="btns" style="justify-content:flex-start; margin-top:4px">
+    <button id="cSave" class="primary">지금 일정 저장</button>
+    <button id="cList">저장 목록 보기</button>
+  </div>
+  <div id="cSlots"></div>
+  <div id="cMsg">같은 방 코드로 저장하면 친구와 나의 저장본이 한 목록에 쌓여요. 처음 저장할 때 입력한 비밀번호가 그 방의 비밀번호가 됩니다.</div>
+  <div class="btns"><button onclick="cloudDialog.close()">닫기</button></div>
+</dialog>
 
 <dialog id="ioDialog">
   <h3 id="ioTitle">일정 내보내기</h3>
@@ -888,6 +917,114 @@ $('#ioApply').onclick=()=>{
     state=s; save(); $('#ioDialog').close(); initAll();
   }catch(e){ alert('형식이 올바르지 않습니다. 내보내기로 만든 텍스트 전체를 붙여넣어 주세요.'); }
 };
+
+/* ============================================================ cloud share (Firebase RTDB REST) ============================================================
+   방 코드 + 비밀번호 방식. 비밀번호는 해시로만 전송/저장되며,
+   DB 보안 규칙이 "비밀번호(해시) 불일치 시 쓰기 거부"를 서버에서 강제한다.
+   읽기(목록 보기)는 방 코드만 알면 가능. */
+const FIREBASE_DB_URL = ''; // 예: 'https://xxxx-default-rtdb.asia-southeast1.firebasedatabase.app' (미설정이면 ☁️ 버튼 숨김)
+const cloudCfg = JSON.parse(localStorage.getItem('sh-cloud')||'{}');
+
+async function sha256(s){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+const roomKey = () => $('#cRoom').value.trim().toLowerCase().replace(/[^a-z0-9_-]/g,'');
+const cMsgSet = t => { $('#cMsg').textContent = t; };
+
+if(!FIREBASE_DB_URL) $('#btnCloud').style.display='none';
+$('#btnCloud').onclick = ()=>{
+  $('#cRoom').value = cloudCfg.room||'';
+  $('#cPw').value = cloudCfg.pw||'';
+  $('#cWho').value = cloudCfg.who||'';
+  $('#cSlots').innerHTML='';
+  cloudDialog.showModal();
+  if(cloudCfg.room) cloudList(); // 쓰던 방이 있으면 목록 자동 표시
+};
+
+function cloudInputs(needPw){
+  const room=roomKey(), pw=$('#cPw').value, who=$('#cWho').value.trim()||'익명';
+  if(!room){ cMsgSet('방 코드를 입력하세요 (영문 소문자/숫자/-/_)'); return null; }
+  if(needPw && !pw){ cMsgSet('비밀번호를 입력하세요'); return null; }
+  Object.assign(cloudCfg,{room,pw,who});
+  localStorage.setItem('sh-cloud', JSON.stringify(cloudCfg));
+  return {room,pw,who};
+}
+async function fetchSlots(room){
+  const r=await fetch(`${FIREBASE_DB_URL}/trips/${room}/slots.json`);
+  if(!r.ok) throw 0;
+  return (await r.json())||{};
+}
+/* 전체 노드를 PUT으로 갈아끼운다. 규칙상 secret(비밀번호 해시)이 기존 값과 일치해야 통과 */
+async function putRoom(room, secret, slots){
+  return fetch(`${FIREBASE_DB_URL}/trips/${room}.json`,{
+    method:'PUT',
+    body:JSON.stringify({secret, nonce:Date.now()+'_'+Math.random().toString(36).slice(2), slots})
+  });
+}
+async function cloudSave(){
+  const c=cloudInputs(true); if(!c) return;
+  cMsgSet('저장 중…');
+  try{
+    const secret=await sha256(c.room+'|'+c.pw);
+    const slots=await fetchSlots(c.room);
+    const d=new Date();
+    slots['s'+Date.now()]={
+      name:`${c.who} · ${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`,
+      who:c.who, at:Date.now(), data:JSON.stringify(state)
+    };
+    const r=await putRoom(c.room, secret, slots);
+    if(r.status===401||r.status===403){ cMsgSet('❌ 비밀번호가 이 방의 비밀번호와 달라요.'); return; }
+    if(!r.ok) throw 0;
+    cMsgSet('✅ 저장했어요! 친구는 같은 방 코드로 이 목록을 볼 수 있어요.');
+    renderSlots(slots);
+  }catch(e){ cMsgSet('저장 실패 — 인터넷 연결을 확인해 주세요.'); }
+}
+async function cloudList(){
+  const c=cloudInputs(false); if(!c) return;
+  cMsgSet('불러오는 중…');
+  try{
+    const slots=await fetchSlots(c.room);
+    if(!Object.keys(slots).length){ cMsgSet('이 방에 저장된 일정이 아직 없어요. "지금 일정 저장"으로 첫 저장을 해보세요.'); $('#cSlots').innerHTML=''; return; }
+    cMsgSet('');
+    renderSlots(slots);
+  }catch(e){ cMsgSet('불러오기 실패 — 인터넷 연결을 확인해 주세요.'); }
+}
+function renderSlots(slots){
+  const box=$('#cSlots'); box.innerHTML='';
+  Object.entries(slots).sort((a,b)=>(b[1].at||0)-(a[1].at||0)).forEach(([id,s])=>{
+    const d=document.createElement('div'); d.className='slot';
+    d.innerHTML=`<span>💾 ${esc(s.name||'저장본')}</span>
+      <span class="slotbtns"><button data-act="load">불러오기</button><button data-act="del">삭제</button></span>`;
+    d.querySelector('[data-act=load]').onclick=()=>{
+      if(!confirm(`"${s.name}" 저장본을 불러올까요?\n지금 화면의 일정은 덮어써져요. (걱정되면 먼저 저장해 두세요)`)) return;
+      try{
+        const st=JSON.parse(s.data);
+        if(!st.days||!st.settings) throw 0;
+        state=st; save(); cloudDialog.close(); initAll();
+      }catch(e){ alert('저장본 형식이 올바르지 않아요.'); }
+    };
+    d.querySelector('[data-act=del]').onclick=()=>cloudDelete(id);
+    box.appendChild(d);
+  });
+}
+async function cloudDelete(id){
+  const c=cloudInputs(true); if(!c) return;
+  if(!confirm('이 저장본을 삭제할까요?')) return;
+  cMsgSet('삭제 중…');
+  try{
+    const secret=await sha256(c.room+'|'+c.pw);
+    const slots=await fetchSlots(c.room);
+    delete slots[id];
+    const r=await putRoom(c.room, secret, slots);
+    if(r.status===401||r.status===403){ cMsgSet('❌ 삭제하려면 이 방의 비밀번호가 필요해요.'); return; }
+    if(!r.ok) throw 0;
+    cMsgSet('삭제했어요.');
+    renderSlots(slots);
+  }catch(e){ cMsgSet('삭제 실패 — 인터넷 연결을 확인해 주세요.'); }
+}
+$('#cSave').onclick=cloudSave;
+$('#cList').onclick=cloudList;
 
 /* ============================================================ boot ============================================================ */
 function esc(s){ return String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
