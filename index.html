@@ -125,6 +125,8 @@ main{flex:1 1 auto; display:grid; grid-template-columns:295px minmax(370px,1fr) 
 .card .l1{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
 .card .l1 input.tm{border:none; outline:none; background:var(--orange-soft); border-radius:6px; padding:1px 5px; font-weight:700; font-size:12px; width:104px}
 .card .l1 .nm{font-weight:700; font-size:14px}
+.card .l1 .editnm{border:none; background:none; font-size:11px; opacity:.4; padding:0 2px; line-height:1}
+.card .l1 .editnm:hover{opacity:1}
 .card .l1 .zh{font-size:11px; color:var(--ink2)}
 .card .quick{font-size:11.5px; color:var(--ink2); margin-top:2px; line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
 .card.open .quick{display:block; -webkit-line-clamp:unset}
@@ -172,6 +174,7 @@ main{flex:1 1 auto; display:grid; grid-template-columns:295px minmax(370px,1fr) 
 #mobileNav button.on{color:var(--orange)}
 @media(pointer:coarse){ .libitem .addbtn{display:block} }
 @media(max-width:900px){
+  body{height:100dvh}
   header{gap:8px; padding:8px 12px}
   header h1{font-size:18px}
   header .hgroup, header .hbtns{display:none}
@@ -180,6 +183,9 @@ main{flex:1 1 auto; display:grid; grid-template-columns:295px minmax(370px,1fr) 
   #settingsToggle{display:block}
   #mobileNav{display:flex}
   main{display:flex; min-height:0}
+  /* 설정창·키보드로 세로 공간이 줄어도 리스트가 0으로 찌부러지지 않게 */
+  #libList{min-height:150px}
+  body.v-lib #library{overflow-y:auto}
   #library,#board,#mapPane{display:none; width:100%; min-width:0; border:none}
   body.v-lib #library{display:flex}
   body.v-plan #board{display:flex}
@@ -525,14 +531,21 @@ function addToDay(pid, dayIdx, index){
 
 /* ---------- mobile views ---------- */
 const isMobile = () => window.matchMedia('(max-width:900px)').matches;
+const closeSettings = () => document.querySelector('header').classList.remove('open');
 function setView(v){
   document.body.classList.remove('v-plan','v-map','v-lib');
   document.body.classList.add('v-'+v);
   document.querySelectorAll('#mobileNav button').forEach(b=>b.classList.toggle('on', b.dataset.view===v));
+  closeSettings(); // 설정창이 열린 채 화면을 전환하면 리스트가 가려지므로 닫는다
   if(v==='map' && map) setTimeout(()=>{ map.invalidateSize(); renderMap(); }, 80);
 }
 document.querySelectorAll('#mobileNav button').forEach(b=> b.onclick=()=>setView(b.dataset.view));
 $('#settingsToggle').onclick = ()=> document.querySelector('header').classList.toggle('open');
+// 모바일: 설정창이 열린 상태에서 장소 검색을 시작하면 설정창을 닫아 리스트 공간 확보
+['libSearch','cpName'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el) el.addEventListener('focus', ()=>{ if(isMobile()) closeSettings(); });
+});
 
 /* ============================================================ board ============================================================ */
 const DOW = ['일','월','화','수','목','금','토'];
@@ -638,13 +651,15 @@ function cardEl(it, idx, color){
   const el=document.createElement('div'); el.className='card'; el.dataset.uid=it.uid;
   el.style.setProperty('--dayclr', color);
   if(!p){ el.innerHTML='<div class="bodyc">(삭제된 장소)</div>'; return el; }
-  const gmap=`https://maps.apple.com/?ll=${p.lat},${p.lng}&q=${encodeURIComponent(p.name)}`;
+  const dispName = it.name || p.name;
+  const gmap=`https://maps.apple.com/?ll=${p.lat},${p.lng}&q=${encodeURIComponent(dispName)}`;
   el.innerHTML=`
     <div class="badge">${idx+1}</div>
     <div class="bodyc">
       <div class="l1">
         <input class="tm" type="time" value="${it.time||''}" title="시간">
-        <span class="nm">${esc(p.name)}</span>
+        <span class="nm">${esc(dispName)}</span>
+        <button class="editnm" title="이름 수정">✏️</button>
         <span class="zh">${esc(p.zh||'')}</span>
       </div>
       ${p.tip?`<div class="quick">💡 ${esc(p.tip)}</div>`:''}
@@ -658,6 +673,13 @@ function cardEl(it, idx, color){
     <button class="del" title="일정에서 빼기">✕</button>
     <button class="toggle">▾ 더보기</button>`;
   el.querySelector('.tm').onchange=e=>{ it.time=e.target.value; save(); };
+  el.querySelector('.editnm').onclick=()=>{
+    const nm=prompt('이 일정의 표시 이름을 수정하세요.\n(비우면 원래 이름으로 돌아갑니다)', it.name||p.name);
+    if(nm===null) return;
+    const t=nm.trim();
+    if(!t || t===p.name) delete it.name; else it.name=t;
+    refresh();
+  };
   el.querySelector('.del').onclick=()=>{
     state.days[state.activeDay]=state.days[state.activeDay].filter(x=>x.uid!==it.uid); refresh();
   };
@@ -693,7 +715,7 @@ function dayWaypoints(i){
   if(i===0) pts.push({name:AIRPORT.name, lat:AIRPORT.lat, lng:AIRPORT.lng, anchor:'✈️'});
   else if(st.hotelInRoute) pts.push({name:hotel.name, lat:hotel.lat, lng:hotel.lng, anchor:'🏨'});
   state.days[i].forEach((it,k)=>{
-    const p=getPlace(it.pid); if(p) pts.push({name:p.name, lat:p.lat, lng:p.lng, n:k+1, pid:it.pid});
+    const p=getPlace(it.pid); if(p) pts.push({name:it.name||p.name, lat:p.lat, lng:p.lng, n:k+1, pid:it.pid});
   });
   if(isLast) pts.push({name:AIRPORT.name, lat:AIRPORT.lat, lng:AIRPORT.lng, anchor:'✈️'});
   else if(st.hotelInRoute && state.days[i].length) pts.push({name:hotel.name, lat:hotel.lat, lng:hotel.lng, anchor:'🏨'});
@@ -720,7 +742,7 @@ function renderMap(){
       const p=getPlace(it.pid); if(!p) return;
       bounds.push([p.lat,p.lng]);
       const m=L.marker([p.lat,p.lng],{icon:numIcon(k+1,color), draggable: state.mapMode==='day'})
-        .bindPopup(`<b>Day ${i+1}-${k+1} · ${esc(p.name)}</b><br>${esc(p.zh||'')}${p.tip?'<br>💡 '+esc(p.tip):''}<br><i>핀 드래그 → 위치 보정</i>`)
+        .bindPopup(`<b>Day ${i+1}-${k+1} · ${esc(it.name||p.name)}</b><br>${esc(p.zh||'')}${p.tip?'<br>💡 '+esc(p.tip):''}<br><i>핀 드래그 → 위치 보정</i>`)
         .addTo(layerG);
       m.on('dragend', e=>{ const ll=e.target.getLatLng(); state.coordFix[it.pid]=[ll.lat,ll.lng]; refresh(); });
     });
