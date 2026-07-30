@@ -638,7 +638,7 @@ function cardEl(it, idx, color){
   const el=document.createElement('div'); el.className='card'; el.dataset.uid=it.uid;
   el.style.setProperty('--dayclr', color);
   if(!p){ el.innerHTML='<div class="bodyc">(삭제된 장소)</div>'; return el; }
-  const gmap=`https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+  const gmap=`https://maps.apple.com/?ll=${p.lat},${p.lng}&q=${encodeURIComponent(p.name)}`;
   el.innerHTML=`
     <div class="badge">${idx+1}</div>
     <div class="bodyc">
@@ -649,7 +649,7 @@ function cardEl(it, idx, color){
       </div>
       ${p.tip?`<div class="quick">💡 ${esc(p.tip)}</div>`:''}
       <div class="links">
-        <a href="${gmap}" target="_blank">구글지도 📍</a>
+        <a href="${gmap}" target="_blank">애플지도 </a>
         ${p.amap?`<a href="${p.amap}" target="_blank">고덕지도 🇨🇳</a>`:''}
         <button class="memobtn">📝 메모</button>
       </div>
