@@ -922,7 +922,7 @@ $('#ioApply').onclick=()=>{
    방 코드 + 비밀번호 방식. 비밀번호는 해시로만 전송/저장되며,
    DB 보안 규칙이 "비밀번호(해시) 불일치 시 쓰기 거부"를 서버에서 강제한다.
    읽기(목록 보기)는 방 코드만 알면 가능. */
-const FIREBASE_DB_URL = ''; // 예: 'https://xxxx-default-rtdb.asia-southeast1.firebasedatabase.app' (미설정이면 ☁️ 버튼 숨김)
+const FIREBASE_DB_URL = 'https://shanghai-eee28-default-rtdb.asia-southeast1.firebasedatabase.app'; // 미설정이면 ☁️ 버튼 숨김
 const cloudCfg = JSON.parse(localStorage.getItem('sh-cloud')||'{}');
 
 async function sha256(s){
