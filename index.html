@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>SY &amp; HJ 상하이 트립</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
@@ -78,15 +78,6 @@ main{flex:1 1 auto; display:grid; grid-template-columns:295px minmax(370px,1fr) 
   background:var(--orange-soft); font-weight:800; font-size:14px; line-height:1; display:none}
 .libitem:hover .addbtn{display:block}
 .libnote{font-size:11px; color:var(--ink2); padding:2px 2px 8px}
-#customBox{border-top:2px dashed var(--line); padding:10px 14px 14px; background:#fdf8ee}
-#customBox h3{font-size:12px; font-weight:800; margin-bottom:6px}
-#customBox .row{display:flex; gap:6px; margin-bottom:6px}
-#customBox input{flex:1; border:1.5px solid var(--line); border-radius:8px; padding:6px 9px; background:#fff; outline:none}
-#customBox button{border:1.5px solid var(--ink); border-radius:8px; background:#fff; font-size:11px; font-weight:700; padding:5px 9px}
-#customBox button.on{background:var(--orange); color:#fff}
-#searchResults{max-height:130px; overflow-y:auto}
-#searchResults .sr{font-size:11.5px; padding:5px 8px; background:#fff; border:1px solid var(--line); border-radius:7px; margin-bottom:4px; cursor:pointer}
-#searchResults .sr:hover{border-color:var(--orange)}
 
 /* ---------- board ---------- */
 #board{display:flex; flex-direction:column; min-height:0; min-width:0}
@@ -136,8 +127,10 @@ main{flex:1 1 auto; display:grid; grid-template-columns:295px minmax(370px,1fr) 
   border:1px solid var(--line); border-radius:6px; padding:2px 7px; background:var(--paper2);
 }
 .card .links a:hover{border-color:var(--orange); color:var(--orange)}
-.card .memo{width:100%; margin-top:6px; border:1.5px dashed var(--line); border-radius:8px; padding:5px 8px; font-size:12px; background:#fffdf5; resize:vertical; min-height:34px; display:none; outline:none}
-.card.open .memo{display:block}
+.card .memotxt{margin-top:6px; border:1.5px dashed var(--line); border-radius:8px; padding:5px 8px; font-size:12px; background:#fffdf5; white-space:pre-wrap; word-break:break-word}
+.card .draghandle{flex:0 0 auto; align-self:center; padding:10px 4px 10px 8px; color:var(--ink2); opacity:.5; cursor:grab; font-size:19px; line-height:1; touch-action:none; user-select:none; -webkit-user-select:none}
+.card .draghandle:active{cursor:grabbing; opacity:.9}
+@media(pointer:coarse){ .card .draghandle{opacity:.75; font-size:22px; padding:12px 6px 12px 10px} }
 .card .del{position:absolute; top:7px; right:8px; border:none; background:none; color:#c33; font-size:13px; font-weight:800; opacity:.35}
 .card .del:hover{opacity:1}
 .card .toggle{position:absolute; bottom:7px; right:8px; border:none; background:none; font-size:11px; color:var(--ink2)}
@@ -171,16 +164,14 @@ main{flex:1 1 auto; display:grid; grid-template-columns:295px minmax(370px,1fr) 
 #mobileNav{display:none; flex:0 0 auto; border-top:2px solid var(--ink); background:var(--paper2); padding-bottom:env(safe-area-inset-bottom)}
 #mobileNav button{flex:1; padding:8px 0 6px; border:none; background:transparent; font-size:11px; font-weight:700; color:var(--ink2)}
 #mobileNav button span{display:block; font-size:19px; line-height:1.2}
-#mobileNav button.on{color:var(--orange)}
+#mobileNav button.on{color:var(--orange); background:var(--orange-soft); box-shadow:inset 0 3px 0 var(--orange)}
 @media(pointer:coarse){ .libitem .addbtn{display:block} }
 @media(max-width:900px){
   body{height:100dvh}
-  header{gap:8px; padding:8px 12px}
-  header h1{font-size:18px}
+  header{gap:6px; padding:6px 10px}
   header .hgroup, header .hbtns{display:none}
   header.open .hgroup{display:flex}
   header.open .hbtns{display:flex; margin-left:0; width:100%; justify-content:flex-end}
-  #settingsToggle{display:block}
   #mobileNav{display:flex}
   main{display:flex; min-height:0}
   /* 설정창·키보드로 세로 공간이 줄어도 리스트가 0으로 찌부러지지 않게 */
@@ -204,19 +195,58 @@ dialog .btns{display:flex; gap:8px; margin-top:12px; justify-content:flex-end}
 dialog button{border:1.5px solid var(--ink); background:#fff; border-radius:8px; padding:6px 14px; font-weight:700; font-size:12px}
 dialog button.primary{background:var(--orange); color:#fff}
 
+/* ---------- viewer (발행본 보기 전용) ---------- */
+#pubStamp{display:none}
+body.viewer #pubStamp{display:inline-block; font-size:10.5px; color:var(--ink2); white-space:nowrap; background:var(--orange-soft); border:1px solid var(--line); border-radius:99px; padding:2px 9px; flex:0 0 auto}
+body.viewer #settingsToggle, body.viewer header .hgroup, body.viewer header .hbtns, body.viewer #btnCloud{display:none !important}
+body.viewer #library{display:none !important}
+body.viewer #mobileNav button[data-view="lib"]{display:none}
+@media(min-width:901px){ body.viewer main{grid-template-columns:minmax(370px,1fr) minmax(340px,1.1fr)} }
+body.viewer #dayTabs button{font-size:14px; padding:12px 18px 10px}
+body.viewer #dayTabs button .dt{font-size:11px}
+body.viewer .anchor{font-size:14px}
+body.viewer .seg{font-size:12.5px}
+body.viewer .card .l1 .nm{font-size:16.5px}
+body.viewer .card .quick{font-size:13px; -webkit-line-clamp:3}
+body.viewer .card .l1 input.tm{background:transparent; font-size:13px; pointer-events:none}
+body.viewer .card .del, body.viewer .card .editnm, body.viewer .card .memobtn{display:none}
+body.viewer .libitem .addbtn{display:none}
+body.viewer .card .draghandle{display:none}
+
 /* ---------- cloud share ---------- */
 #btnCloud{border:1.5px solid var(--ink); background:#fff; border-radius:10px; padding:6px 12px; font-size:12px; font-weight:700; box-shadow:2px 2px 0 var(--ink); transition:.12s}
 #btnCloud:hover{transform:translate(1px,1px); box-shadow:1px 1px 0 var(--ink)}
-@media(max-width:900px){ #btnCloud{padding:5px 9px} }
-#cloudDialog .cfield{display:flex; align-items:center; gap:8px; margin-bottom:8px}
-#cloudDialog .cfield label{flex:0 0 64px; font-size:12px; font-weight:700; color:var(--ink2)}
-#cloudDialog .cfield input{flex:1; min-width:0; border:1.5px solid var(--line); border-radius:8px; padding:6px 9px; background:#fff; outline:none}
-#cloudDialog .cfield input:focus{border-color:var(--orange)}
+#moreWrap{display:none}
+@media(max-width:900px){
+  header:not(.open){flex-wrap:nowrap}
+  header h1{font-size:16px; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1}
+  #btnCloud{display:none}
+  #moreWrap{display:block; margin-left:auto; position:relative; flex:0 0 auto}
+  #moreBtn{border:1.5px solid var(--ink); background:#fff; border-radius:9px; padding:4px 13px; font-weight:800; font-size:17px; line-height:1.2; box-shadow:2px 2px 0 var(--ink)}
+  #moreMenu{display:none; position:absolute; right:0; top:calc(100% + 6px); background:var(--paper2); border:2px solid var(--ink); border-radius:12px; box-shadow:4px 4px 0 rgba(35,37,43,.25); z-index:1200; min-width:160px; overflow:hidden}
+  #moreMenu.open{display:block}
+  #moreMenu button{display:block; width:100%; text-align:left; border:none; background:none; padding:12px 15px; font-size:13.5px; font-weight:700; border-bottom:1.5px dashed var(--line)}
+  #moreMenu button:last-child{border-bottom:none}
+  body.viewer #moreWrap{display:none}
+}
+#cloudDialog .cfield, #addPlaceDialog .cfield{display:flex; align-items:center; gap:8px; margin-bottom:8px}
+#cloudDialog .cfield label, #addPlaceDialog .cfield label{flex:0 0 64px; font-size:12px; font-weight:700; color:var(--ink2)}
+#cloudDialog .cfield input, #addPlaceDialog .cfield input{flex:1; min-width:0; border:1.5px solid var(--line); border-radius:8px; padding:6px 9px; background:#fff; outline:none}
+#cloudDialog .cfield input:focus, #addPlaceDialog .cfield input:focus{border-color:var(--orange)}
+#library h2{display:flex; align-items:center; gap:8px}
+#btnAddPlace{border:1.5px solid var(--ink); background:var(--orange-soft); border-radius:8px; width:24px; height:24px; font-weight:800; font-size:15px; line-height:1; padding:0}
+#apResults{max-height:150px; overflow-y:auto; margin-top:8px}
+#apResults .sr{font-size:12px; padding:7px 9px; background:#fff; border:1.5px solid var(--line); border-radius:7px; margin-bottom:5px; cursor:pointer}
+#apResults .sr.sel{border-color:var(--orange); background:var(--orange-soft)}
 #cSlots{max-height:180px; overflow-y:auto; margin-top:8px}
 #cloudDialog .slot{display:flex; align-items:center; justify-content:space-between; gap:8px; background:#fff; border:1.5px solid var(--line); border-radius:8px; padding:6px 9px; margin-top:6px; font-size:12px}
 #cloudDialog .slot .slotbtns{display:flex; gap:5px; flex:0 0 auto}
 #cloudDialog .slot button{padding:3px 8px; font-size:11px}
 #cMsg{font-size:12px; color:var(--ink2); margin-top:10px; min-height:16px}
+#memoDialog textarea{height:120px}
+#dayPickBtns button{display:block; width:100%; text-align:left; margin-bottom:7px; border:1.5px solid var(--line); border-left:6px solid var(--dc,var(--orange)); border-radius:9px; background:#fff; padding:11px 13px; font-size:13.5px}
+#dayPickBtns button:hover{border-color:var(--dc,var(--orange))}
+#dayPickBtns button small{color:var(--ink2); font-weight:400}
 #cloudDialog .cwho{display:flex; align-items:center; gap:8px; font-size:12.5px; background:#fff; border:1.5px solid var(--line); border-radius:8px; padding:6px 10px}
 #cloudDialog .cwho button{margin-left:auto; padding:3px 9px; font-size:11px; border:1.5px solid var(--line); border-radius:7px; background:#fff; color:var(--ink2)}
 </style>
@@ -225,8 +255,16 @@ dialog button.primary{background:var(--orange); color:#fff}
 
 <header>
   <h1>SY <em>&amp;</em> HJ 상하이 트립</h1>
+  <span id="pubStamp"></span>
   <button id="btnCloud" title="친구와 일정 공유">☁️ 공유</button>
   <button id="settingsToggle">⚙️ 설정</button>
+  <div id="moreWrap">
+    <button id="moreBtn" title="메뉴">⋯</button>
+    <div id="moreMenu">
+      <button data-m="cloud">☁️ 공유 저장</button>
+      <button data-m="set">⚙️ 여행 설정</button>
+    </div>
+  </div>
   <div class="hgroup"><label>출발일</label><input type="date" id="startDate"></div>
   <div class="hgroup"><label>기간</label>
     <div class="stepper"><button id="nMinus">−</button><b id="nightsLabel">5박 6일</b><button id="nPlus">＋</button></div>
@@ -246,22 +284,13 @@ dialog button.primary{background:var(--orange); color:#fff}
   <!-- library -->
   <aside id="library">
     <div class="libhead">
-      <h2>장소 라이브러리</h2>
+      <h2>장소 라이브러리 <button id="btnAddPlace" title="새 장소 추가">＋</button></h2>
       <div class="sub">by 윤제주(@yooonjeju) 가이드 · 드래그하거나 ＋로 일정에 추가</div>
       <input id="libSearch" placeholder="장소 검색…">
     </div>
     <div class="cattabs" id="catTabs"></div>
     <div id="libList"></div>
-    <div id="customBox">
-      <h3>➕ 새 장소 추가</h3>
-      <div class="row"><input id="cpName" placeholder="장소 이름 (예: OO카페)"></div>
-      <div class="row">
-        <button id="cpSearch">🔍 지도에서 검색</button>
-        <button id="cpPick">📍 지도 클릭으로 지정</button>
-      </div>
-      <div id="searchResults"></div>
-    </div>
-  </aside>
+      </aside>
 
   <!-- board -->
   <section id="board">
@@ -286,6 +315,32 @@ dialog button.primary{background:var(--orange); color:#fff}
   <button data-view="lib"><span>➕</span>장소</button>
 </nav>
 
+<dialog id="addPlaceDialog">
+  <h3>⭐ 새 장소 추가</h3>
+  <div class="cfield"><label>이름</label><input id="apName" placeholder="예: OO카페"></div>
+  <div class="btns" style="justify-content:flex-start; margin-top:4px">
+    <button id="apSearch">🔍 이름으로 위치 검색</button>
+    <button id="apPick">📍 지도 클릭으로 지정</button>
+  </div>
+  <div id="apResults"></div>
+  <div id="apStatus" style="font-size:12px; color:var(--ink2); margin-top:8px">위치를 검색해서 고르거나, 지도를 클릭해 지정해 주세요</div>
+  <div class="btns"><button onclick="addPlaceDialog.close()">취소</button><button id="apSave" class="primary">저장</button></div>
+</dialog>
+
+<dialog id="memoDialog">
+  <h3>📝 메모</h3>
+  <div id="memoPlace" style="font-size:12px; color:var(--ink2); margin-bottom:8px"></div>
+  <textarea id="memoText" placeholder="예: 웨이팅 몇 시에 걸기, 예산, 예약 번호…"></textarea>
+  <div class="btns"><button onclick="memoDialog.close()">취소</button><button id="memoSave" class="primary">저장</button></div>
+</dialog>
+
+<dialog id="dayPickDialog">
+  <h3>어느 날 일정에 넣을까요?</h3>
+  <div id="dayPickName" style="font-size:12px; color:var(--ink2); margin-bottom:10px"></div>
+  <div id="dayPickBtns"></div>
+  <div class="btns"><button onclick="dayPickDialog.close()">취소</button></div>
+</dialog>
+
 <dialog id="cloudDialog">
   <h3>☁️ 친구와 일정 공유</h3>
   <div id="cLogin">
@@ -301,6 +356,10 @@ dialog button.primary{background:var(--orange); color:#fff}
     <div class="btns" style="justify-content:flex-start; margin:8px 0 0">
       <button id="cSave" class="primary">💾 지금 일정 저장</button>
       <button id="cRefresh">새로고침</button>
+    </div>
+    <div class="btns" style="justify-content:flex-start; margin:6px 0 0">
+      <button id="cPublish">📣 발행하기</button>
+      <button id="cViewLink">🔗 보기 링크 복사</button>
     </div>
     <div id="cSlots"></div>
   </div>
@@ -419,9 +478,12 @@ const AIRPORT = {name:'푸동공항', zh:'浦东国际机场', lat:31.1443, lng:
 const DAY_COLORS = ['#e05d2c','#0f7b6c','#3b6fc9','#b13a86','#c98a12','#5b57c7','#2a8f4e','#8a5a3b','#c74b5e','#3c8f9e'];
 const CATS = [['all','전체'],['tour','🏛️ 관광'],['food','🥢 맛집'],['cafe','🧁 카페'],['shop','🛍️ 쇼핑'],['etc','📌 기타'],['custom','⭐ 내 장소']];
 const CATLABEL = {tour:'관광',food:'맛집',cafe:'카페',shop:'쇼핑',etc:'기타',custom:'내 장소'};
+const CATEMOJI = {tour:'🏛️', food:'🥢', cafe:'🧁', shop:'🛍️', etc:'📌', custom:'⭐'};
 
 /* ============================================================ state ============================================================ */
 const LS_KEY = 'shanghai-trip-v1';
+/* 보기 전용 모드: 링크가 #v/방코드 형태면 발행본만 보여준다 */
+const VIEWER_ROOM = (location.hash.match(/^#v\/([a-z0-9_-]+)/)||[])[1] || null;
 let state = null;
 let uidSeq = 1;
 const uid = () => 'i' + (uidSeq++) + '_' + Math.random().toString(36).slice(2,6);
@@ -441,7 +503,7 @@ function defaultState(){
 }
 function nextMonth(){ const d=new Date(); d.setDate(d.getDate()+30); return d.toISOString().slice(0,10); }
 
-function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+function save(){ if(VIEWER_ROOM) return; localStorage.setItem(LS_KEY, JSON.stringify(state)); }
 function load(){
   try{ const s = JSON.parse(localStorage.getItem(LS_KEY)); if(s && s.days) return s; }catch(e){}
   return null;
@@ -542,13 +604,13 @@ function renderLibrary(){
   box.appendChild(note);
   list.forEach(p=>{
     const el=document.createElement('div'); el.className='libitem'; el.dataset.pid=p.id;
-    el.innerHTML = `<div class="nm">${inTrip.has(p.id)?'✓ ':''}${esc(p.name)}</div>
+    el.innerHTML = `<div class="nm">${CATEMOJI[p.cat]||''} ${inTrip.has(p.id)?'✓ ':''}${esc(p.name)}</div>
       <div class="zh">${esc(p.zh||'')}</div>
-      <div class="cat">${CATLABEL[p.cat]||''}</div>
-      <button class="addbtn" title="현재 날짜에 추가">＋</button>`;
-    el.querySelector('.addbtn').onclick = (e)=>{ e.stopPropagation(); addToDay(p.id, state.activeDay); };
+      <button class="addbtn" title="일정에 추가">＋</button>`;
+    el.querySelector('.addbtn').onclick = (e)=>{ e.stopPropagation(); openDayPick(p.id); };
     box.appendChild(el);
   });
+  if(VIEWER_ROOM) return;
   if(libSortable) libSortable.destroy();
   libSortable = Sortable.create(box, {
     group:{name:'trip', pull:'clone', put:false},
@@ -568,6 +630,37 @@ function addToDay(pid, dayIdx, index){
   if(isMobile()) setView('plan'); // 모바일: 추가 후 일정 화면으로
 }
 
+/* ---------- memo modal (명시적 저장) ---------- */
+let memoTarget=null;
+function openMemo(it, name){
+  memoTarget=it;
+  $('#memoPlace').textContent=name;
+  $('#memoText').value=it.memo||'';
+  memoDialog.showModal();
+}
+$('#memoSave').onclick=()=>{
+  if(memoTarget) memoTarget.memo=$('#memoText').value.trim();
+  memoTarget=null; memoDialog.close(); refresh();
+};
+
+/* ---------- day picker (＋ 버튼 → 날짜 골라 추가) ---------- */
+let pickPid=null;
+function openDayPick(pid){
+  pickPid=pid;
+  const p=getPlace(pid);
+  $('#dayPickName').textContent = p ? `${p.name} — 넣을 날짜를 고르면 그날 맨 뒤에 들어가요. 위치는 드래그로 조정!` : '';
+  const box=$('#dayPickBtns'); box.innerHTML='';
+  for(let i=0;i<numDays();i++){
+    const d=dayDate(i);
+    const b=document.createElement('button');
+    b.style.setProperty('--dc', DAY_COLORS[i%DAY_COLORS.length]);
+    b.innerHTML=`<b>Day ${i+1}</b> · ${d.getMonth()+1}/${d.getDate()} (${DOW[d.getDay()]}) <small>· 지금 ${state.days[i].length}곳${i===state.activeDay?' · 보는 중':''}</small>`;
+    b.onclick=()=>{ dayPickDialog.close(); state.activeDay=i; addToDay(pickPid, i); };
+    box.appendChild(b);
+  }
+  dayPickDialog.showModal();
+}
+
 /* ---------- mobile views ---------- */
 const isMobile = () => window.matchMedia('(max-width:900px)').matches;
 const closeSettings = () => document.querySelector('header').classList.remove('open');
@@ -581,7 +674,7 @@ function setView(v){
 document.querySelectorAll('#mobileNav button').forEach(b=> b.onclick=()=>setView(b.dataset.view));
 $('#settingsToggle').onclick = ()=> document.querySelector('header').classList.toggle('open');
 // 모바일: 설정창이 열린 상태에서 장소 검색을 시작하면 설정창을 닫아 리스트 공간 확보
-['libSearch','cpName'].forEach(id=>{
+['libSearch'].forEach(id=>{
   const el=document.getElementById(id);
   if(el) el.addEventListener('focus', ()=>{ if(isMobile()) closeSettings(); });
 });
@@ -648,9 +741,10 @@ function renderDay(){
   foot.innerHTML = `장소 <b>${items.length}</b>곳`;
   box.appendChild(foot);
 
+  if(VIEWER_ROOM) return;
   if(daySortable) daySortable.destroy();
   daySortable = Sortable.create(ul, {
-    group:'trip', animation:150, handle:'.badge', draggable:'.card',
+    group:'trip', animation:150, handle:'.badge,.draghandle', draggable:'.card',
     filter:'.seg,.empty-hint', delay:120, delayOnTouchOnly:true,
     onAdd: (ev)=>{
       // 라이브러리에서 클론된 항목
@@ -702,13 +796,14 @@ function cardEl(it, idx, color){
         <span class="zh">${esc(p.zh||'')}</span>
       </div>
       ${p.tip?`<div class="quick">💡 ${esc(p.tip)}</div>`:''}
+      ${it.memo?`<div class="memotxt">📝 ${esc(it.memo)}</div>`:''}
       <div class="links">
         <a href="${esc(gmap)}" target="_blank" rel="noopener">애플지도 </a>
         ${p.amap && /^https?:\/\//.test(p.amap) ? `<a href="${esc(p.amap)}" target="_blank" rel="noopener">고덕지도 🇨🇳</a>` : ''}
-        <button class="memobtn">📝 메모</button>
+        <button class="memobtn">${it.memo?'📝 메모 수정':'📝 메모'}</button>
       </div>
-      <textarea class="memo" placeholder="우리끼리 메모 (예: 웨이팅 몇 시에 걸기, 예산…)">${esc(it.memo||'')}</textarea>
     </div>
+    <div class="draghandle" title="여기를 끌어 순서 변경">⠿</div>
     <button class="del" title="일정에서 빼기">✕</button>
     <button class="toggle">▾ 더보기</button>`;
   el.querySelector('.tm').onchange=e=>{ it.time=e.target.value; save(); };
@@ -722,10 +817,10 @@ function cardEl(it, idx, color){
   el.querySelector('.del').onclick=()=>{
     state.days[state.activeDay]=state.days[state.activeDay].filter(x=>x.uid!==it.uid); refresh();
   };
+  if(VIEWER_ROOM){ el.querySelector('.tm').disabled=true; }
   const toggle=()=>{ el.classList.toggle('open'); el.querySelector('.toggle').textContent=el.classList.contains('open')?'▴ 접기':'▾ 더보기'; };
   el.querySelector('.toggle').onclick=toggle;
-  el.querySelector('.memobtn').onclick=()=>{ if(!el.classList.contains('open')) toggle(); el.querySelector('.memo').focus(); };
-  el.querySelector('.memo').oninput=e=>{ it.memo=e.target.value; save(); };
+  el.querySelector('.memobtn').onclick=()=>openMemo(it, dispName);
   el.querySelector('.quick') && (el.querySelector('.quick').onclick=toggle);
   return el;
 }
@@ -767,7 +862,7 @@ function renderMap(){
   layerG.clearLayers();
   const hotel=getHotel();
   // 호텔 핀(항상)
-  L.marker([hotel.lat, hotel.lng], {icon:emojiIcon('🏨'), draggable:true})
+  L.marker([hotel.lat, hotel.lng], {icon:emojiIcon('🏨'), draggable:!VIEWER_ROOM})
     .bindPopup(`<b>🏨 ${esc(hotel.name)}</b><br>${esc(hotel.tip||'')}<br><i>핀을 드래그하면 위치가 보정됩니다</i>`)
     .on('dragend', e=>{ const ll=e.target.getLatLng(); state.coordFix[hotel.id]=[ll.lat,ll.lng]; refresh(); })
     .addTo(layerG);
@@ -780,7 +875,7 @@ function renderMap(){
     state.days[i].forEach((it,k)=>{
       const p=getPlace(it.pid); if(!p) return;
       bounds.push([p.lat,p.lng]);
-      const m=L.marker([p.lat,p.lng],{icon:numIcon(k+1,color), draggable: state.mapMode==='day'})
+      const m=L.marker([p.lat,p.lng],{icon:numIcon(k+1,color), draggable: state.mapMode==='day' && !VIEWER_ROOM})
         .bindPopup(`<b>Day ${i+1}-${k+1} · ${esc(it.name||p.name)}</b><br>${esc(p.zh||'')}${p.tip?'<br>💡 '+esc(p.tip):''}<br><i>핀 드래그 → 위치 보정</i>`)
         .addTo(layerG);
       m.on('dragend', e=>{ const ll=e.target.getLatLng(); state.coordFix[it.pid]=[ll.lat,ll.lng]; refresh(); });
@@ -858,16 +953,18 @@ function msg(t){
 
 /* ============================================================ custom place / hotel pick ============================================================ */
 let pickMode=null; // 'place' | 'hotel'
+let apCoord=null;     // 새 장소 추가 모달에서 고른 좌표
 function onMapClick(e){
   if(!pickMode) return;
   const {lat,lng}=e.latlng;
   if(pickMode==='place'){
-    const nm=$('#cpName').value.trim()||'새 장소';
-    const id='c_'+Date.now();
-    state.custom.push({id, name:nm, zh:'', cat:'custom', lat, lng, tip:'직접 추가한 장소'});
-    addToDay(id, state.activeDay);
-    $('#cpName').value='';
-  }else if(pickMode==='hotel'){
+    apCoord={lat,lng};
+    pickMode=null; msg('');
+    $('#apStatus').textContent=`📍 지도에서 위치 지정됨 (${lat.toFixed(4)}, ${lng.toFixed(4)}) — 저장을 눌러야 추가돼요`;
+    addPlaceDialog.showModal();
+    return;
+  }
+  if(pickMode==='hotel'){
     const nm=prompt('숙소 이름을 입력하세요','내 숙소');
     if(nm){
       const id='ch_'+Date.now();
@@ -875,22 +972,30 @@ function onMapClick(e){
       state.settings.hotel=id;
       initHeader();
     }
+    pickMode=null; msg('');
+    refresh();
   }
-  pickMode=null; $('#cpPick').classList.remove('on'); msg('');
-  refresh();
 }
-$('#cpPick').onclick=()=>{
-  pickMode = pickMode==='place'? null : 'place';
-  $('#cpPick').classList.toggle('on', pickMode==='place');
-  msg(pickMode?'지도를 클릭해 장소 위치를 지정하세요':'');
-  if(pickMode && isMobile()) setView('map');
-};
 function startHotelPick(){ pickMode='hotel'; msg('지도를 클릭해 숙소 위치를 지정하세요'); if(isMobile()) setView('map'); }
 
-$('#cpSearch').onclick=async ()=>{
-  const q=$('#cpName').value.trim();
-  if(!q){ alert('장소 이름을 먼저 입력하세요'); return; }
-  const box=$('#searchResults'); box.innerHTML='<div class="libnote">검색 중…</div>';
+/* ---------- 새 장소 추가 모달 (명시적 저장) ---------- */
+function openAddPlace(){
+  apCoord=null; pickMode=null;
+  $('#apName').value=''; $('#apResults').innerHTML='';
+  $('#apStatus').textContent='위치를 검색해서 고르거나, 지도를 클릭해 지정해 주세요';
+  addPlaceDialog.showModal();
+}
+$('#btnAddPlace').onclick=openAddPlace;
+$('#apPick').onclick=()=>{
+  pickMode='place';
+  addPlaceDialog.close();
+  msg('지도를 클릭해 장소 위치를 지정하세요');
+  if(isMobile()) setView('map');
+};
+$('#apSearch').onclick=async ()=>{
+  const q=$('#apName').value.trim();
+  if(!q){ $('#apStatus').textContent='이름을 먼저 입력해 주세요'; return; }
+  const box=$('#apResults'); box.innerHTML='<div class="libnote">검색 중…</div>';
   try{
     const url=`https://nominatim.openstreetmap.org/search?format=json&limit=5&accept-language=ko&q=${encodeURIComponent(q+' Shanghai')}`;
     const r=await fetch(url,{headers:{'Accept':'application/json'}});
@@ -900,14 +1005,24 @@ $('#cpSearch').onclick=async ()=>{
     j.forEach(res=>{
       const d=document.createElement('div'); d.className='sr'; d.textContent=res.display_name;
       d.onclick=()=>{
-        const id='c_'+Date.now();
-        state.custom.push({id, name:q, zh:'', cat:'custom', lat:+res.lat, lng:+res.lon, tip:'검색으로 추가한 장소'});
-        addToDay(id, state.activeDay);
-        box.innerHTML=''; $('#cpName').value='';
+        apCoord={lat:+res.lat, lng:+res.lon};
+        box.querySelectorAll('.sr').forEach(x=>x.classList.remove('sel'));
+        d.classList.add('sel');
+        $('#apStatus').textContent='✓ 위치 선택됨 — 저장을 눌러야 추가돼요';
       };
       box.appendChild(d);
     });
   }catch(e){ box.innerHTML='<div class="libnote">검색 실패 — 인터넷 연결을 확인하세요</div>'; }
+};
+$('#apSave').onclick=()=>{
+  const nm=$('#apName').value.trim();
+  if(!nm){ $('#apStatus').textContent='이름을 입력해 주세요'; return; }
+  if(!apCoord){ $('#apStatus').textContent='위치를 검색해서 고르거나 지도에서 지정해 주세요'; return; }
+  state.custom.push({id:'c_'+Date.now(), name:nm, zh:'', cat:'custom', lat:apCoord.lat, lng:apCoord.lng, tip:'직접 추가한 장소'});
+  apCoord=null;
+  addPlaceDialog.close();
+  libCat='custom'; renderCatTabs(); refresh();
+  if(isMobile()) setView('lib');
 };
 
 /* ============================================================ export / import ============================================================ */
@@ -955,6 +1070,27 @@ async function putRoom(room, secret, slots){
   });
 }
 
+/* 방 공유 장소 라이브러리: slots/__lib 에 커스텀 장소·좌표 보정을 합쳐서 보관 */
+function mergeLib(libSlot){
+  if(!libSlot || !libSlot.data) return;
+  try{
+    const lib=JSON.parse(libSlot.data);
+    if(Array.isArray(lib.custom)){
+      const have=new Set(state.custom.map(c=>c.id));
+      lib.custom.forEach(c=>{ if(c && c.id && !have.has(c.id)) state.custom.push(c); });
+    }
+    if(lib.coordFix) state.coordFix=Object.assign({}, lib.coordFix, state.coordFix);
+  }catch(e){}
+}
+function buildLibSlot(prev){
+  let remote={custom:[], coordFix:{}};
+  try{ if(prev && prev.data) remote=JSON.parse(prev.data)||remote; }catch(e){}
+  const have=new Set(state.custom.map(c=>c.id));
+  const custom=state.custom.concat((remote.custom||[]).filter(c=>c && c.id && !have.has(c.id)));
+  const coordFix=Object.assign({}, remote.coordFix||{}, state.coordFix);
+  return {at:Date.now(), data:JSON.stringify({custom, coordFix})};
+}
+
 function cloudUI(){
   const on = !!cloudCfg.ok;
   $('#cLogin').style.display = on?'none':'block';
@@ -983,6 +1119,7 @@ async function cloudLogin(){
     if(r.status===401||r.status===403){ cMsgSet('❌ 등록되지 않은 방이거나 비밀번호가 달라요.'); return; }
     if(!r.ok) throw 0;
     Object.assign(cloudCfg,{room,pw,who,ok:true}); saveCloudCfg();
+    mergeLib(slots['__lib']); refresh();
     cloudUI(); cMsgSet('');
     renderSlots(slots);
   }catch(e){ cMsgSet('연결 실패 — 인터넷 연결을 확인해 주세요.'); }
@@ -998,6 +1135,8 @@ async function cloudSave(){
   try{
     const secret=await sha256(cloudCfg.room+'|'+cloudCfg.pw);
     const slots=await fetchSlots(cloudCfg.room);
+    mergeLib(slots['__lib']); refresh();
+    slots['__lib']=buildLibSlot(slots['__lib']);
     const d=new Date();
     slots['s'+Date.now()]={
       name:`${cloudCfg.who} · ${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`,
@@ -1014,14 +1153,15 @@ async function cloudList(){
   cMsgSet('불러오는 중…');
   try{
     const slots=await fetchSlots(cloudCfg.room);
-    if(!Object.keys(slots).length){ cMsgSet('아직 저장된 일정이 없어요. "지금 일정 저장"으로 첫 저장을 해보세요.'); $('#cSlots').innerHTML=''; return; }
+    mergeLib(slots['__lib']); refresh();
+    if(!Object.keys(slots).filter(k=>!k.startsWith('__')).length){ cMsgSet('아직 저장된 일정이 없어요. "지금 일정 저장"으로 첫 저장을 해보세요.'); $('#cSlots').innerHTML=''; return; }
     cMsgSet('');
     renderSlots(slots);
   }catch(e){ cMsgSet('불러오기 실패 — 인터넷 연결을 확인해 주세요.'); }
 }
 function renderSlots(slots){
   const box=$('#cSlots'); box.innerHTML='';
-  Object.entries(slots).sort((a,b)=>(b[1].at||0)-(a[1].at||0)).forEach(([id,s])=>{
+  Object.entries(slots).filter(([id])=>!id.startsWith('__')).sort((a,b)=>(b[1].at||0)-(a[1].at||0)).forEach(([id,s])=>{
     const d=document.createElement('div'); d.className='slot';
     d.innerHTML=`<span>💾 ${esc(s.name||'저장본')}</span>
       <span class="slotbtns"><button data-act="load">불러오기</button><button data-act="del">삭제</button></span>`;
@@ -1051,6 +1191,40 @@ async function cloudDelete(id){
     renderSlots(slots);
   }catch(e){ cMsgSet('삭제 실패 — 인터넷 연결을 확인해 주세요.'); }
 }
+async function cloudPublish(){
+  if(!confirm('지금 화면의 일정을 발행할까요?\n보기 링크로 접속하는 사람에게 이 버전이 보여요.')) return;
+  cMsgSet('발행 중…');
+  try{
+    const secret=await sha256(cloudCfg.room+'|'+cloudCfg.pw);
+    const slots=await fetchSlots(cloudCfg.room);
+    mergeLib(slots['__lib']); refresh();
+    slots['__lib']=buildLibSlot(slots['__lib']);
+    slots['__published']={who:cloudCfg.who, at:Date.now(), data:JSON.stringify(state)};
+    const r=await putRoom(cloudCfg.room, secret, slots);
+    if(r.status===401||r.status===403){ cMsgSet('❌ 권한 확인 실패 — 나가기 후 다시 입장해 주세요.'); return; }
+    if(!r.ok) throw 0;
+    cMsgSet('📣 발행 완료! "보기 링크 복사"를 눌러 공유하세요.');
+  }catch(e){ cMsgSet('발행 실패 — 인터넷 연결을 확인해 주세요.'); }
+}
+function copyViewLink(){
+  const url=`${location.origin}${location.pathname}#v/${cloudCfg.room}`;
+  navigator.clipboard.writeText(url)
+    .then(()=>cMsgSet('🔗 보기 링크를 복사했어요! 카톡에 붙여넣기 하세요.'))
+    .catch(()=>{ prompt('이 링크를 복사하세요', url); });
+}
+$('#cPublish').onclick=cloudPublish;
+$('#cViewLink').onclick=copyViewLink;
+
+/* 모바일 ⋯ 메뉴 */
+const moreMenu=$('#moreMenu');
+$('#moreBtn').onclick=(e)=>{ e.stopPropagation(); moreMenu.classList.toggle('open'); };
+document.addEventListener('click', e=>{ if(!e.target.closest('#moreWrap')) moreMenu.classList.remove('open'); });
+moreMenu.querySelectorAll('button').forEach(b=> b.onclick=()=>{
+  moreMenu.classList.remove('open');
+  if(b.dataset.m==='cloud') $('#btnCloud').onclick();
+  else if(b.dataset.m==='set') document.querySelector('header').classList.toggle('open');
+});
+
 $('#cLoginBtn').onclick=cloudLogin;
 $('#cLogout').onclick=cloudLogout;
 $('#cSave').onclick=cloudSave;
@@ -1063,7 +1237,30 @@ function initAll(){ initHeader(); renderCatTabs(); refresh(); }
 
 state = load() || defaultState();
 initMap();
-initAll();
+if(VIEWER_ROOM){
+  document.body.classList.add('viewer');
+  (async ()=>{
+    try{
+      const r=await fetch(`${FIREBASE_DB_URL}/trips/${VIEWER_ROOM}/slots/__published.json`);
+      const pub = r.ok ? await r.json() : null;
+      if(pub && pub.data){
+        const st=JSON.parse(pub.data);
+        if(st.days && st.settings) state=st;
+        const d=new Date(pub.at||0);
+        $('#pubStamp').textContent=`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} 발행`;
+      }else{
+        $('#pubStamp').textContent='미발행';
+      }
+    }catch(e){ $('#pubStamp').textContent='오프라인'; }
+    // 여행 중이면 오늘 날짜 탭을 자동으로 연다
+    const t0=new Date(state.settings.startDate+'T00:00:00');
+    const diff=Math.floor((Date.now()-t0.getTime())/86400000);
+    if(diff>=0 && diff<numDays()) state.activeDay=diff;
+    initAll();
+  })();
+}else{
+  initAll();
+}
 </script>
 </body>
 </html>
