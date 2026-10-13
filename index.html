@@ -1376,6 +1376,10 @@ try{ base=JSON.parse(localStorage.getItem(BASE_KEY)); }catch(e){}
 let baseState=null;
 function parseBase(){ try{ baseState = base && base.data ? JSON.parse(base.data) : null; }catch(e){ baseState=null; } }
 parseBase();
+// 같은 도메인의 다른 플래너가 남긴 기록이면 버린다 (숙소가 이 플래너 목록에 없으면 남의 것)
+if(baseState && !(baseState.settings && (HOTELS.some(h=>h.id===baseState.settings.hotel) || (baseState.custom||[]).some(c=>c.id===baseState.settings.hotel)))){
+  base=null; baseState=null; try{ localStorage.removeItem(BASE_KEY); }catch(e){}
+}
 function setBase(name, at, data){
   base={name, at, data}; parseBase();
   try{ localStorage.setItem(BASE_KEY, JSON.stringify(base)); }catch(e){}
@@ -1435,6 +1439,13 @@ async function syncDefault(){
     const r=await fetch(`${FIREBASE_DB_URL}/trips/${ROOM}/slots.json`);
     const sh = r.ok ? sharedOf((await r.json())||{}) : null;
     if(!sh) return;
+    // 불러온 저장본 기록이 없어도, 지금 화면이 공유 일정과 같으면 헤더 표시를 되살린다
+    if(!base){
+      try{
+        const ss=JSON.parse(sh.data);
+        if(ss.days && ss.days.length===state.days.length && state.days.every((d,i)=>dayKey(d)===dayKey(ss.days[i]))){ setBase(sh.name, sh.savedAt, sh.data); renderCurFile(); renderTabs(); }
+      }catch(e){}
+    }
     if((sh.at||0) <= (+localStorage.getItem(DEF_SEEN_KEY)||0)) return;
     const st=JSON.parse(sh.data);
     if(!st.days || !st.settings) return;
