@@ -1095,7 +1095,7 @@ $('#ioApply').onclick=()=>{
   try{
     const s=JSON.parse($('#ioText').value);
     if(!s.days||!s.settings) throw 0;
-    state=s; setBase('가져온 일정', Date.now(), JSON.stringify(s)); save(); $('#ioDialog').close(); initAll();
+    state=keepView(s); setBase('가져온 일정', Date.now(), JSON.stringify(s)); save(); $('#ioDialog').close(); initAll();
   }catch(e){ alert('형식이 올바르지 않습니다. 내보내기로 만든 텍스트 전체를 붙여넣어 주세요.'); }
 };
 
@@ -1242,7 +1242,7 @@ function renderSlots(slots){
       try{
         const st=JSON.parse(s.data);
         if(!st.days||!st.settings) throw 0;
-        state=st; setBase(s.name||'저장본', s.at, s.data); save(); cloudDialog.close(); initAll();
+        state=keepView(st); setBase(s.name||'저장본', s.at, s.data); save(); cloudDialog.close(); initAll();
       }catch(e){ alert('저장본 형식이 올바르지 않아요.'); }
     };
     d.querySelector('[data-act=del]').onclick=()=>cloudDelete(id);
@@ -1277,7 +1277,7 @@ async function cloudSetDefault(slot, src){
     if(r.status===401||r.status===403){ cMsgSet('❌ 권한 확인 실패 — 로그아웃 후 다시 로그인해 주세요.'); return; }
     if(!r.ok) throw 0;
     localStorage.setItem(DEF_SEEN_KEY, at);
-    const st=JSON.parse(data); if(st.days && st.settings){ state=st; setBase(name, slot.at, data); initAll(); }
+    const st=JSON.parse(data); if(st.days && st.settings){ state=keepView(st); setBase(name, slot.at, data); initAll(); }
     cMsgSet('⭐ 기본 일정으로 설정했어요!');
     renderSlots(slots);
   }catch(e){ cMsgSet('설정 실패 — 인터넷 연결을 확인해 주세요.'); }
@@ -1328,6 +1328,12 @@ $('#cRefresh').onclick=cloudList;
 function fmtStamp(t){ const d=new Date(t||0); return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
 /* 예전 저장본은 제목 끝에 " · 10/10 20:37"이 붙어 있어 날짜가 두 번 보이지 않게 뗀다 */
 const slotTitle = (name, at) => { const t=String(name||'저장본'), sfx=' · '+fmtStamp(at); return at && t.endsWith(sfx) ? t.slice(0,-sfx.length) : t; };
+/* 저장본을 불러와도 지금 보던 Day 탭·지도 모드는 유지한다 (저장 당시 탭으로 튀면 화면 색이 통째로 바뀜) */
+function keepView(st){
+  st.activeDay = Math.min(state ? state.activeDay||0 : 0, (st.settings.nights||0));
+  if(state && state.mapMode) st.mapMode = state.mapMode;
+  return st;
+}
 function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove('on'),3500); }
 function esc(s){ return String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 /* 지금 화면이 어느 저장본에서 왔는지(base) 기억해 두고, 그 저장본과 달라진 곳에 점을 찍는다 */
@@ -1406,7 +1412,7 @@ async function syncDefault(){
     if((def.at||0) <= (+localStorage.getItem(DEF_SEEN_KEY)||0)) return;
     const st=JSON.parse(def.data);
     if(!st.days || !st.settings) return;
-    state=st; localStorage.setItem(DEF_SEEN_KEY, def.at); setBase(def.name||'기본 일정', def.savedAt||def.at, def.data); initAll();
+    state=keepView(st); localStorage.setItem(DEF_SEEN_KEY, def.at); setBase(def.name||'기본 일정', def.savedAt||def.at, def.data); initAll();
     toast(`⭐ 기본 일정(${fmtStamp(def.at)} 지정)을 불러왔어요`);
   }catch(e){}
 }
