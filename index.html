@@ -411,10 +411,10 @@ body.viewer .card .draghandle{display:none}
    좌표는 근사값입니다. 지도에서 핀을 드래그하면 위치를 보정할 수 있어요.
 ============================================================ */
 const HOTELS = [
- {id:'h_ji',   name:'JI 호텔 (더번드 쓰촨중로)', zh:'全季酒店', lat:31.2440, lng:121.4860, tip:'7만원 후반~ / 가성비 굿, 위치 굿(북와이탄·와이탄·난징동루 인접). 동방명주 뷰 객실: Superior 1 Bed Room with View'},
- {id:'h_bw',   name:'브로드웨이 맨션 호텔', zh:'上海大厦', lat:31.2465, lng:121.4905, tip:'10만원 초반~ / 100년 역사 클래식 5성급. 리버뷰(와이탄) 강추. 5% 할인코드: YOOONJEJU'},
- {id:'h_gc',   name:'그랜드 센트럴 상하이', zh:'上海南新雅大酒店', lat:31.2355, lng:121.4790, tip:'난징동루 중심 위치 1등! 한국인이 가장 많이 가는 곳'},
- {id:'h_eton', name:'디 이튼 상하이', zh:'裕景大饭店', lat:31.2210, lng:121.5290, tip:'가격 대비 넓은 룸, 가성비, 지하철 앞이라 교통 편리'},
+ {id:'h_ji',   name:'JI 호텔 (더번드 쓰촨중로)', zh:'全季酒店', lat:31.24294, lng:121.48079, tip:'7만원 후반~ / 가성비 굿, 위치 굿(북와이탄·와이탄·난징동루 인접). 동방명주 뷰 객실: Superior 1 Bed Room with View'},
+ {id:'h_bw',   name:'브로드웨이 맨션 호텔', zh:'上海大厦', lat:31.24738, lng:121.48449, tip:'10만원 초반~ / 100년 역사 클래식 5성급. 리버뷰(와이탄) 강추. 5% 할인코드: YOOONJEJU'},
+ {id:'h_gc',   name:'그랜드 센트럴 상하이', zh:'上海大酒店', lat:31.23758, lng:121.47762, tip:'난징동루 중심 위치 1등! 한국인이 가장 많이 가는 곳'},
+ {id:'h_eton', name:'디 이튼 상하이', zh:'裕景大饭店', lat:31.24354, lng:121.51514, tip:'가격 대비 넓은 룸, 가성비, 지하철 앞이라 교통 편리'},
 ];
 
 // cat: tour 관광 / food 맛집 / cafe 카페·디저트 / shop 쇼핑 / etc 기타
@@ -452,8 +452,8 @@ const PLACES = [
  // ---- Day 5
  {id:'sudimsum', name:'수딤섬 (브런치)', zh:'苏小柳 (신세계백화점 시티점)', cat:'food', lat:31.23688, lng:121.46959, amap:'https://surl.amap.com/lpeuzj0X5vR', def:[5,1,'10:30'], tip:'가성비 정통 딤섬. 샤오롱바오 & 동파육 찐빵 초초강추! 투어 전 든든하게 먹어두기. 2인 2~3만원'},
  {id:'lillian', name:'릴리안 에그타르트 (포장)', zh:'莉莲蛋挞 (신세계성점)', cat:'cafe', lat:31.23675, lng:121.46892, amap:'https://surl.amap.com/2osUleU5c3by', def:[5,2,'11:30'], tip:'인생 타르트! 기본맛 무조건. 수딤섬과 같은 백화점이라 동선 깔끔. 버스에서 마실 헤이티/루이싱도 미리 주문해두면 센스 만점'},
- {id:'wuzhen_e', name:'우전 동책 (수향마을)', zh:'乌镇 东栅', cat:'tour', lat:30.7460, lng:120.4850, def:[5,3,'15:00'], tip:'투어는 인민광장 인근 집결(12:30경 출발, 편도 3시간). 실물 여권 필수!! 나룻배 포함 투어 강추(서책 나룻배는 비쌈)'},
- {id:'wuzhen_w', name:'우전 서책 & 야경', zh:'乌镇 西栅', cat:'tour', lat:30.7440, lng:120.4740, def:[5,4,'18:00'], tip:'일몰~야경이 정말 예뻐요. 추천 간식: 무떡·화덕만두·꽃모양 떡 (저렴+맛있음, 줄 주의)'},
+ {id:'wuzhen_e', name:'우전 동책 (수향마을)', zh:'乌镇 东栅', cat:'tour', lat:30.74159, lng:120.49181, def:[5,3,'15:00'], tip:'투어는 인민광장 인근 집결(12:30경 출발, 편도 3시간). 실물 여권 필수!! 나룻배 포함 투어 강추(서책 나룻배는 비쌈)'},
+ {id:'wuzhen_w', name:'우전 서책 & 야경', zh:'乌镇 西栅', cat:'tour', lat:30.75213, lng:120.47909, def:[5,4,'18:00'], tip:'일몰~야경이 정말 예뻐요. 추천 간식: 무떡·화덕만두·꽃모양 떡 (저렴+맛있음, 줄 주의)'},
  {id:'haidilao', name:'하이디라오 훠궈', zh:'海底捞火锅 (인민광장점)', cat:'food', lat:31.23785, lng:121.46988, amap:'https://surl.amap.com/lSlI3hYf4cc', def:[5,5,'21:30'], tip:'아침 7시까지 운영, 투어 피로 녹이기 최적. 탕은 토마토/기본/백탕 추천(마라탕 매움 주의). 반판 주문 가능. 2인 5~6만원'},
  // ---- Day 6
  {id:'checkout', name:'호텔 체크아웃 (짐 맡기기)', zh:'', cat:'etc', useHotel:true, def:[6,1,'10:00'], tip:'짐은 호텔에 맡기고 마지막 일정 가볍게! 공항 가기 전 다시 들러야 하니 동선 고려'},
@@ -468,7 +468,7 @@ const PLACES = [
  {id:'jingan', name:'정안사', zh:'静安寺', cat:'tour', lat:31.22538, lng:121.44072, amap:'https://surl.amap.com/guZtq5XO4UF', tip:'빌딩 숲 한복판 황금빛 사찰, 밤에 더 웅장. 근처 맛집·카페 많아 반나절 코스 강추'},
  {id:'zhangyuan', name:'장원 (난징시루 골목)', zh:'张园', cat:'tour', lat:31.22988, lng:121.45550, amap:'https://surl.amap.com/4i0DKUBv1B6tU', tip:'옛 대저택 개조 럭셔리 쇼핑·전시 공간. 명품 팝업+세련된 카페 성지 (블루보틀 장원점)'},
  {id:'1000trees', name:'천안천수 (1000 Trees)', zh:'天安千树', cat:'tour', lat:31.25103, lng:121.44089, amap:'https://surl.amap.com/1X0aBVcK7rg', tip:'수천 그루 나무가 심어진 독특한 건물. 현대 건축 사진 명소'},
- {id:'cruise', name:'황푸강 유람선', zh:'黄浦江游览 (십육포 부두)', cat:'tour', lat:31.2310, lng:121.4930, tip:'푸동&와이탄 야경 감상, 점등 이후 탑승 추천. 가족여행 강추. 클룩 5% 할인코드: YOONJEJU'},
+ {id:'cruise', name:'황푸강 유람선', zh:'黄浦江游览 (십육포 부두)', cat:'tour', lat:31.22920, lng:121.49448, tip:'푸동&와이탄 야경 감상, 점등 이후 탑승 추천. 가족여행 강추. 클룩 5% 할인코드: YOONJEJU'},
  {id:'pudongart', name:'푸동미술관', zh:'浦东美术馆', cat:'tour', lat:31.23965, lng:121.49146, amap:'https://surl.amap.com/25dNU9A172Ki', tip:'장 누벨 설계 랜드마크. 유리창 너머 와이탄 뷰 — 예술+인생샷 동시에'},
  {id:'pearl', name:'동방명주 전망대', zh:'东方明珠', cat:'tour', lat:31.24172, lng:121.49528, amap:'https://surl.amap.com/398K5ULf1wczy', tip:'투명 유리바닥 전망대. 지하 상하이 역사박물관도 볼거리. 해질녘 노을 타임 추천'},
  {id:'shtower', name:'상하이 타워 전망대', zh:'上海中心大厦', cat:'tour', lat:31.23554, lng:121.50095, amap:'https://surl.amap.com/hTlGMXAYaTR', tip:'중국 최고층 빌딩 118층 시티뷰 + 세계 최고 속도 엘리베이터'},
@@ -543,6 +543,7 @@ function getPlace(pid){
   if(!p) return null;
   const out = Object.assign({}, p);
   if(p.useHotel){ const h = getHotel(); out.lat=h.lat; out.lng=h.lng; out.zh = h.name; }
+  if(!out.amap){ const poi=AMAP_POI[p.useHotel ? getHotel().id : pid]; if(poi) out.amap=`https://uri.amap.com/marker?poiid=${poi}&callnative=1`; }
   const fix = state.coordFix[pid];
   if(fix){ out.lat=fix[0]; out.lng=fix[1]; }
   return out;
@@ -727,8 +728,8 @@ let daySortable=null;
    - 고덕 웹은 ID 핀과 좌표 핀이 섞이면 한 종류만 그려서, 좌표뿐인 곳(숙소·직접 추가한 곳)은 따로 링크를 만든다.
    - 고덕은 GCJ-02 좌표를 쓴다. coordinate=wgs84 옵션은 PC 웹에서 무시돼서 직접 변환해서 넘긴다. */
 const AMAP_MAX=10;
-// 장소별 고덕 POI ID (surl.amap.com 공유 링크에서 추출, 예원·신천지는 고덕에서 직접 확인)
-const AMAP_POI = {"xintiandi": "B00155KUM0", "yuyuan": "B00155MF55", "crabnoodle": "B0LURD4Y1B", "heytea": "B0GRFSDL1E", "nanjingdong": "B0FFF5VNSV", "bund": "B00155FXB3", "lamb": "B0FFLFPZV5", "sijiminfu": "B0H01HNRB6", "wukang": "B00155ITJ1", "kprovgov": "B001556HRR", "polux": "B0FFKBQHL3", "tianzifang": "B00155HO6Y", "dahuchun": "B00155IMN4", "jianbing": "B0JRCS86FO", "disney": "B00157AW8O", "hongkuijia": "B0FFGP1BQM", "nbund": "B0J2X7U8HX", "manner": "B0J0KZZEDK", "dimdimsum": "B0FFKZZVX7", "lujiazui": "BX10017063", "superbrand": "B00155L44U", "feidachu": "B0JKLK451D", "sudimsum": "B0JAC7R6AC", "lillian": "B00155KXUP", "haidilao": "B0FFHCZJ95", "sbreserve": "B0FFIVFX5D", "lvpopup": "B0LUZ7YXUM", "lailai": "B0LDNC08HU", "panlong": "B0GR66UUOU", "zhujiajiao": "B001558F5I", "qibao": "B0FFGFB0FD", "jingan": "B00154BDE9", "zhangyuan": "B00155QIPB", "1000trees": "B0FFMA0COY", "pudongart": "B0H1CZ3PZU", "pearl": "B00150F6D6", "shtower": "B00155KO68", "stage": "B0LG2ZJY2P", "jiajia": "B0GRUR6E73", "xiaoyang": "B0FFHWFO0U", "oldalley": "B0I3KZ95RQ", "renhe": "B0J6CSLTZZ", "grandmother": "B00154DSVI", "dumplingking": "B0FFHB44RB", "yidiandian": "B0LUGHAMWH", "parkhotel": "B00153BA1A", "prada": "B0GKJOYAH8", "conde": "B0KGLSSJHU", "marzo": "B0JK2RZD5D", "bnc": "B0K6KL35DS", "venchi": "B0FFMH38DL", "blanbunny": "B0FFJH537X", "mmworld": "B0FFF6XAGH", "minisoland": "B0L6OM8L06", "wmanagement": "B0KUCSZ1QD"};
+// 장소별 고덕 POI ID. 기본 장소는 surl.amap.com 공유 링크에서 추출, 숙소·유람선·우전·직접 추가한 장소(c_*)·예원·신천지는 고덕 검색으로 확인
+const AMAP_POI = {"h_ji": "B0FFKIULSV", "h_bw": "B00156DHEW", "h_gc": "B00155M0OB", "h_eton": "B00155L3YB", "cruise": "B00155QH2S", "wuzhen_e": "B023D03VEN", "wuzhen_w": "B023D02SCY", "c_laojishi": "B00156G74J", "c_rtmart": "B00155MQ8D", "c_1790227713210": "B0G0B6YDBF", "c_1790928167329": "B00155L44U", "xintiandi": "B00155KUM0", "yuyuan": "B00155MF55", "crabnoodle": "B0LURD4Y1B", "heytea": "B0GRFSDL1E", "nanjingdong": "B0FFF5VNSV", "bund": "B00155FXB3", "lamb": "B0FFLFPZV5", "sijiminfu": "B0H01HNRB6", "wukang": "B00155ITJ1", "kprovgov": "B001556HRR", "polux": "B0FFKBQHL3", "tianzifang": "B00155HO6Y", "dahuchun": "B00155IMN4", "jianbing": "B0JRCS86FO", "disney": "B00157AW8O", "hongkuijia": "B0FFGP1BQM", "nbund": "B0J2X7U8HX", "manner": "B0J0KZZEDK", "dimdimsum": "B0FFKZZVX7", "lujiazui": "BX10017063", "superbrand": "B00155L44U", "feidachu": "B0JKLK451D", "sudimsum": "B0JAC7R6AC", "lillian": "B00155KXUP", "haidilao": "B0FFHCZJ95", "sbreserve": "B0FFIVFX5D", "lvpopup": "B0LUZ7YXUM", "lailai": "B0LDNC08HU", "panlong": "B0GR66UUOU", "zhujiajiao": "B001558F5I", "qibao": "B0FFGFB0FD", "jingan": "B00154BDE9", "zhangyuan": "B00155QIPB", "1000trees": "B0FFMA0COY", "pudongart": "B0H1CZ3PZU", "pearl": "B00150F6D6", "shtower": "B00155KO68", "stage": "B0LG2ZJY2P", "jiajia": "B0GRUR6E73", "xiaoyang": "B0FFHWFO0U", "oldalley": "B0I3KZ95RQ", "renhe": "B0J6CSLTZZ", "grandmother": "B00154DSVI", "dumplingking": "B0FFHB44RB", "yidiandian": "B0LUGHAMWH", "parkhotel": "B00153BA1A", "prada": "B0GKJOYAH8", "conde": "B0KGLSSJHU", "marzo": "B0JK2RZD5D", "bnc": "B0K6KL35DS", "venchi": "B0FFMH38DL", "blanbunny": "B0FFJH537X", "mmworld": "B0FFF6XAGH", "minisoland": "B0L6OM8L06", "wmanagement": "B0KUCSZ1QD"};
 function wgs2gcj(lat, lng){
   const a=6378245.0, ee=0.00669342162296594323, PI=Math.PI;
   const tl=(x,y)=>{ let r=-100+2*x+3*y+0.2*y*y+0.1*x*y+0.2*Math.sqrt(Math.abs(x)); r+=(20*Math.sin(6*x*PI)+20*Math.sin(2*x*PI))*2/3; r+=(20*Math.sin(y*PI)+40*Math.sin(y/3*PI))*2/3; r+=(160*Math.sin(y/12*PI)+320*Math.sin(y*PI/30))*2/3; return r; };
@@ -744,11 +745,16 @@ function amapDayLinks(i){
   const withPoi=[], noPoi=[];
   state.days[i].forEach(it=>{
     const p=getPlace(it.pid); if(!p) return;
-    const id=AMAP_POI[it.pid];
-    if(id) withPoi.push(id); else noPoi.push({n:p.useHotel?`숙소 ${h.name}`:p.name, lat:p.lat, lng:p.lng});
+    const id=AMAP_POI[p.useHotel ? h.id : it.pid];
+    if(id){ if(!withPoi.includes(id)) withPoi.push(id); }
+    else noPoi.push({n:p.useHotel?`숙소 ${h.name}`:p.name, lat:p.lat, lng:p.lng});
   });
-  const hasHotel=noPoi.some(x=>x.lat===h.lat && x.lng===h.lng);
-  if(st.hotelInRoute && !hasHotel) noPoi.push({n:`숙소 ${h.name}`, lat:h.lat, lng:h.lng});
+  // 경로에 숙소 포함이면 숙소도 같이 띄운다 (이미 일정에 있으면 생략)
+  if(st.hotelInRoute){
+    const hid=AMAP_POI[h.id];
+    if(hid){ if(!withPoi.includes(hid) && withPoi.length%AMAP_MAX!==0) withPoi.push(hid); }
+    else if(!noPoi.some(x=>x.lat===h.lat && x.lng===h.lng)) noPoi.push({n:`숙소 ${h.name}`, lat:h.lat, lng:h.lng});
+  }
   const clean=t=>String(t).replace(/[|,]/g,' ').slice(0,24);
   const coordMarkers=noPoi.map(x=>{ const [la,ln]=wgs2gcj(x.lat,x.lng); return `${ln.toFixed(6)},${la.toFixed(6)},${clean(x.n)}`; });
   const out=[];
