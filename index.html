@@ -266,8 +266,12 @@ body.viewer .card .draghandle{display:none}
 #cloudDialog .cnote{font-size:11.5px; color:var(--ink2); margin-top:4px; line-height:1.5}
 #cloudDialog .slot .sname{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 #cloudDialog .slot .sname small{color:var(--ink2); font-weight:400; margin-left:4px}
-#cloudDialog .slot.isdef{border-color:var(--orange); background:var(--orange-soft)}
-#cDefInfo{font-size:11.5px; color:var(--ink2); margin-top:4px}
+#cloudDialog .slot .scur{flex:0 0 14px; font-weight:800; color:var(--orange); text-align:center}
+#cloudDialog .slot.cur{border-color:var(--orange)}
+#cloudDialog .slot.cur .sname{font-weight:700}
+#cloudDialog .slot .sname{flex:1}
+#cloudDialog .slot .slotbtns button{width:28px; height:26px; padding:0; font-size:13px; line-height:1}
+#cloudDialog .slot .slotbtns button.ison{background:var(--orange-soft); border-color:var(--orange); cursor:default}
 #saveDialog{width:min(380px,92vw)}
 #saveDialog input{width:100%; box-sizing:border-box; border:1.5px solid var(--line); border-radius:8px; padding:8px 10px; background:#fff; outline:none; font-size:14px}
 #saveDialog input:focus{border-color:var(--orange)}
@@ -378,7 +382,6 @@ body.viewer .card .draghandle{display:none}
     <button id="cSave" class="primary cwide">💾 지금 일정 저장</button>
     <div class="csec">
       <div class="csech"><b>저장본</b><button id="cRefresh" class="ctext">↻ 새로고침</button></div>
-      <div id="cDefInfo"></div>
       <div id="cSlots"></div>
     </div>
     <div class="csec">
@@ -1185,7 +1188,7 @@ async function cloudLogin(){
 function cloudLogout(){
   cloudCfg.ok=false; saveCloudCfg();
   $('#cPw').value='';
-  $('#cSlots').innerHTML=''; $('#cDefInfo').textContent=''; cMsgSet('로그아웃했어요.'); cloudUI();
+  $('#cSlots').innerHTML=''; cMsgSet('로그아웃했어요.'); cloudUI();
 }
 
 function openSaveDialog(){
@@ -1222,13 +1225,16 @@ async function cloudList(){
 }
 function renderSlots(slots){
   const box=$('#cSlots'); box.innerHTML='';
-  const def=slots['__default'] || (ROOM===ROOM && slots[DEFAULT_FALLBACK_SLOT] ? Object.assign({src:DEFAULT_FALLBACK_SLOT}, slots[DEFAULT_FALLBACK_SLOT]) : null);
-  $('#cDefInfo').textContent = def ? `⭐ 기본 일정: ${slotTitle(def.name, def.savedAt||def.at)} (${fmtStamp(def.savedAt||def.at)} 저장본) — 플래너에 들어오면 로그인 없이 이 일정이 보여요.` : '⭐ 아직 기본 일정이 없어요.';
+  const def=slots['__default'] || (slots[DEFAULT_FALLBACK_SLOT] ? Object.assign({src:DEFAULT_FALLBACK_SLOT}, slots[DEFAULT_FALLBACK_SLOT]) : null);
   Object.entries(slots).filter(([id])=>!id.startsWith('__')).sort((a,b)=>(b[1].at||0)-(a[1].at||0)).forEach(([id,s])=>{
     const isDef = def && def.src===id;
-    const d=document.createElement('div'); d.className='slot'+(isDef?' isdef':'');
-    d.innerHTML=`<span class="sname">${isDef?'⭐':'💾'} ${esc(slotTitle(s.name, s.at))}<small>${fmtStamp(s.at)}</small></span>
-      <span class="slotbtns"><button data-act="load">불러오기</button>${isDef?'':'<button data-act="def">기본으로</button>'}<button data-act="del">삭제</button></span>`;
+    const isCur = base && base.at===s.at; // 지금 화면이 이 저장본에서 왔는지
+    const d=document.createElement('div'); d.className='slot'+(isCur?' cur':'');
+    d.innerHTML=`<span class="scur" title="${isCur?'지금 보고 있는 저장본':''}">${isCur?'✓':''}</span>
+      <span class="sname">💾 ${esc(slotTitle(s.name, s.at))}<small>${fmtStamp(s.at)}</small></span>
+      <span class="slotbtns"><button data-act="load" title="불러오기" aria-label="불러오기">📂</button>${isDef
+        ? '<button class="ison" title="기본 일정" aria-label="기본 일정">⭐</button>'
+        : '<button data-act="def" title="기본 일정으로 설정" aria-label="기본 일정으로 설정">☆</button>'}<button data-act="del" title="삭제" aria-label="삭제">🗑️</button></span>`;
     const defBtn=d.querySelector('[data-act=def]');
     if(defBtn) defBtn.onclick=()=>cloudSetDefault(s, id);
     d.querySelector('[data-act=load]').onclick=()=>{
