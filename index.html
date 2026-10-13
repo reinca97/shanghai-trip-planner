@@ -264,20 +264,19 @@ body.viewer .card .draghandle{display:none}
 #cloudDialog .csech .ctext{margin-left:auto}
 #cloudDialog .cnote{font-size:11.5px; color:var(--ink2); margin-top:4px; line-height:1.5}
 #cloudDialog .slot .sname{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; height:30px; padding:0 10px; text-align:left; font-size:12px; font-weight:600; background:#fff; border:1.5px solid var(--line); border-radius:8px; box-shadow:none}
-#cloudDialog .slot .sname:hover{border-color:var(--orange)}
+@media (hover:hover){ #cloudDialog .slot:not(.cur) .sname:hover{border-color:var(--orange)} }
 #cloudDialog .slot .sname small{color:var(--ink2); font-weight:400; margin-left:4px}
 #cloudDialog .slot .scur{flex:0 0 18px; color:var(--orange); display:inline-flex; align-items:center; justify-content:center}
 #cloudDialog .slot.cur .sname{font-weight:800; border-color:var(--orange); background:var(--orange-soft)}
 #cloudDialog .slot .sname{flex:1}
 #cloudDialog .slot .slotbtns button{width:30px; height:30px; padding:0; font-size:13px; line-height:1; background:none; border:none; box-shadow:none; border-radius:8px}
-#cloudDialog .slot .slotbtns button:hover{background:var(--orange-soft)}
+@media (hover:hover){ #cloudDialog .slot .slotbtns button:not(.ison):hover{background:var(--orange-soft)} }
 #cloudDialog .slot .slotbtns button{display:inline-flex; align-items:center; justify-content:center; color:var(--ink2)}
 #cloudDialog .slot .slotbtns svg{stroke:currentColor; fill:none}
 #cloudDialog .cicon{display:inline-flex; align-items:center; gap:6px}
 #cloudDialog .cicon svg{stroke:currentColor; fill:none; flex:0 0 auto}
 #cloudDialog .slot .slotbtns button.ison{cursor:default; color:var(--orange)}
 #cloudDialog .slot .slotbtns button.ison svg{fill:var(--orange)}
-#cloudDialog .slot .slotbtns button.ison:hover{background:none}
 #saveDialog{width:min(380px,92vw)}
 #saveDialog input{width:100%; box-sizing:border-box; border:1.5px solid var(--line); border-radius:8px; padding:8px 10px; background:#fff; outline:none; font-size:14px}
 #saveDialog input:focus{border-color:var(--orange)}
@@ -1273,6 +1272,8 @@ function renderSlots(slots){
       }catch(e){ alert('저장본 형식이 올바르지 않아요.'); }
     };
     d.querySelector('[data-act=del]').onclick=()=>cloudDelete(id);
+    // 확인창에서 취소해도 눌렀던 버튼이 선택된 것처럼 남지 않게 포커스를 푼다
+    d.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>b.blur()));
     box.appendChild(d);
   });
 }
