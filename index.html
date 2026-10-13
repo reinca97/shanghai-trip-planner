@@ -254,12 +254,20 @@ body.viewer .card .draghandle{display:none}
 #dayPickBtns button{display:block; width:100%; text-align:left; margin-bottom:7px; border:1.5px solid var(--line); border-left:6px solid var(--dc,var(--orange)); border-radius:9px; background:#fff; padding:11px 13px; font-size:13.5px}
 #dayPickBtns button:hover{border-color:var(--dc,var(--orange))}
 #dayPickBtns button small{color:var(--ink2); font-weight:400}
-#cloudDialog .cwho{display:flex; align-items:center; gap:8px; font-size:12.5px; background:#fff; border:1.5px solid var(--line); border-radius:8px; padding:6px 10px}
-#cloudDialog .cwho button{margin-left:auto; padding:3px 9px; font-size:11px; border:1.5px solid var(--line); border-radius:7px; background:#fff; color:var(--ink2)}
+#cloudDialog{width:min(420px,92vw)}
+#cloudDialog .chead{display:flex; align-items:center; gap:8px; margin-bottom:12px}
+#cloudDialog .chead h3{margin:0}
+#cloudDialog .ctext{border:none; background:none; box-shadow:none; padding:3px 4px; font-size:11.5px; font-weight:600; color:var(--ink2); text-decoration:underline; text-underline-offset:2px}
+#cloudDialog .chead .ctext{margin-left:auto}
+#cloudDialog .cwide{display:block; width:100%; padding:10px; font-size:14px}
+#cloudDialog .csec{margin-top:16px; padding-top:12px; border-top:1.5px dashed var(--line)}
+#cloudDialog .csech{display:flex; align-items:center; font-size:13px}
+#cloudDialog .csech .ctext{margin-left:auto}
+#cloudDialog .cnote{font-size:11.5px; color:var(--ink2); margin-top:4px; line-height:1.5}
 #cloudDialog .slot .sname{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 #cloudDialog .slot .sname small{color:var(--ink2); font-weight:400; margin-left:4px}
 #cloudDialog .slot.isdef{border-color:var(--orange); background:var(--orange-soft)}
-#cDefInfo{font-size:11.5px; color:var(--ink2); margin-top:8px}
+#cDefInfo{font-size:11.5px; color:var(--ink2); margin-top:4px}
 #saveDialog{width:min(380px,92vw)}
 #saveDialog input{width:100%; box-sizing:border-box; border:1.5px solid var(--line); border-radius:8px; padding:8px 10px; background:#fff; outline:none; font-size:14px}
 #saveDialog input:focus{border-color:var(--orange)}
@@ -359,35 +367,38 @@ body.viewer .card .draghandle{display:none}
 </dialog>
 
 <dialog id="cloudDialog">
-  <h3>☁️ 친구와 일정 공유</h3>
+  <div class="chead"><h3>☁️ 친구와 일정 공유</h3><button id="cLogout" class="ctext">로그아웃</button></div>
   <div id="cLogin">
-    <div class="cfield"><label>방 코드</label><input id="cRoom" placeholder="예: my-trip-01 (영문/숫자/-)"></div>
     <div class="cfield"><label>비밀번호</label><input id="cPw" type="password" placeholder="친구와 약속한 비밀번호"></div>
     <div class="btns" style="justify-content:flex-start; margin-top:4px">
-      <button id="cLoginBtn" class="primary">입장하기</button>
+      <button id="cLoginBtn" class="primary">로그인</button>
     </div>
   </div>
   <div id="cPanel" style="display:none">
-    <div class="cwho">🔓 <b id="cWhoBadge"></b><button id="cLogout">나가기</button></div>
-    <div class="btns" style="justify-content:flex-start; margin:8px 0 0; flex-wrap:wrap">
-      <button id="cSave" class="primary">💾 지금 일정 저장</button>
-      <button id="cRefresh">새로고침</button>
+    <button id="cSave" class="primary cwide">💾 지금 일정 저장</button>
+    <div class="csec">
+      <div class="csech"><b>저장본</b><button id="cRefresh" class="ctext">↻ 새로고침</button></div>
+      <div id="cDefInfo"></div>
+      <div id="cSlots"></div>
     </div>
-    <div class="btns" style="justify-content:flex-start; margin:6px 0 0">
-      <button id="cPublish">📣 발행하기</button>
-      <button id="cViewLink">🔗 보기 링크 복사</button>
+    <div class="csec">
+      <div class="csech"><b>친구에게 보여주기</b></div>
+      <div class="cnote">발행하면 보기 링크로 들어온 사람에게 지금 화면의 일정이 보여요. 보기 링크로는 일정을 고칠 수 없어요.</div>
+      <div class="btns" style="justify-content:flex-start; margin:8px 0 0">
+        <button id="cPublish">📣 발행하기</button>
+        <button id="cViewLink">🔗 보기 링크 복사</button>
+      </div>
     </div>
-    <div id="cDefInfo"></div>
-    <div id="cSlots"></div>
   </div>
-  <div id="cMsg">한 번 입장하면 이 기기에 기억돼요. 같은 방에 저장하면 친구와 나의 저장본이 한 목록에 쌓입니다.</div>
+  <div id="cMsg"></div>
   <div class="btns"><button onclick="cloudDialog.close()">닫기</button></div>
 </dialog>
 
 <dialog id="saveDialog">
   <h3>💾 지금 일정 저장</h3>
-  <input id="sTitle" maxlength="40" placeholder="제목 (예: 3일차 동선 수정본)">
-  <div style="font-size:11.5px; color:var(--ink2); margin-top:6px">비워 두면 저장 시각이 제목이 돼요.</div>
+  <div style="font-size:12.5px; color:var(--ink2); margin-bottom:8px">저장본 목록에 보일 제목을 입력해 주세요.</div>
+  <input id="sTitle" maxlength="40" placeholder="저장 제목 입력 (예: 3일차 동선 수정본)">
+  <div style="font-size:11.5px; color:var(--ink2); margin-top:6px">비워 두면 저장한 시각이 제목이 돼요.</div>
   <div class="btns"><button onclick="saveDialog.close()">취소</button><button id="sOk" class="primary">저장</button></div>
 </dialog>
 <div id="toast"></div>
@@ -508,7 +519,7 @@ const CATEMOJI = {tour:'🏛️', food:'🥢', cafe:'🧁', shop:'🛍️', etc:
 /* ============================================================ state ============================================================ */
 const LS_KEY = 'shanghai-trip-v1';
 /* 보기 전용 모드: 링크가 #v/방코드 형태면 발행본만 보여준다 */
-const VIEWER_ROOM = (location.hash.match(/^#v\/([a-z0-9_-]+)/)||[])[1] || null;
+const VIEWER_ROOM = /^#v\//.test(location.hash) ? 'shanghai-nana' : null; // 보기 링크도 상하이 방만
 let state = null;
 let uidSeq = 1;
 const uid = () => 'i' + (uidSeq++) + '_' + Math.random().toString(36).slice(2,6);
@@ -1086,14 +1097,15 @@ $('#ioApply').onclick=()=>{
 };
 
 /* ============================================================ cloud share (Firebase RTDB REST) ============================================================
-   방 코드 + 비밀번호 방식. 비밀번호는 해시로만 전송/저장되며,
+   방 코드(ROOM, 상하이 고정) + 비밀번호 방식. 비밀번호는 해시로만 전송/저장되며,
    DB 보안 규칙이 "비밀번호(해시) 불일치 시 쓰기 거부"를 서버에서 강제한다.
    읽기(목록 보기)는 방 코드만 알면 가능. */
 const FIREBASE_DB_URL = 'https://shanghai-eee28-default-rtdb.asia-southeast1.firebasedatabase.app'; // 미설정이면 ☁️ 버튼 숨김
 const cloudCfg = JSON.parse(localStorage.getItem('sh-cloud')||'{}');
-const DEFAULT_ROOM = 'shanghai-nana'; // 로그인한 적 없는 기기가 기본 일정을 가져올 방
+const ROOM = 'shanghai-nana'; // 상하이 플래너는 이 방만 쓴다 (사용자에게는 노출하지 않음)
 const DEFAULT_FALLBACK_SLOT = 's1791632260148'; // 방에 기본 일정이 아직 없을 때 쓸 저장본 (10/10 20:37)
 const DEF_SEEN_KEY = 'sh-default-seen';
+if(cloudCfg.room && cloudCfg.room!==ROOM){ cloudCfg.ok=false; cloudCfg.pw=''; cloudCfg.room=ROOM; } // 다른 방으로 로그인돼 있던 기기는 로그아웃
 function saveCloudCfg(){ localStorage.setItem('sh-cloud', JSON.stringify(cloudCfg)); }
 
 async function sha256(s){
@@ -1140,28 +1152,28 @@ function cloudUI(){
   const on = !!cloudCfg.ok;
   $('#cLogin').style.display = on?'none':'block';
   $('#cPanel').style.display = on?'block':'none';
-  if(on) $('#cWhoBadge').textContent = cloudCfg.room;
+  $('#cLogout').style.display = on?'':'none';
 }
 if(!FIREBASE_DB_URL) $('#btnCloud').style.display='none';
 $('#btnCloud').onclick = ()=>{
   cMsgSet(''); $('#cSlots').innerHTML='';
   if(!cloudCfg.ok){
-    $('#cRoom').value=cloudCfg.room||''; $('#cPw').value=cloudCfg.pw||'';
+    $('#cPw').value=cloudCfg.pw||'';
+    cMsgSet('한 번 로그인하면 이 기기에 기억돼요.');
   }
   cloudUI(); cloudDialog.showModal();
   if(cloudCfg.ok) cloudList(); // 입장 상태면 목록 자동 표시
 };
 
 async function cloudLogin(){
-  const room=$('#cRoom').value.trim().toLowerCase().replace(/[^a-z0-9_-]/g,'');
-  const pw=$('#cPw').value;
-  if(!room || !pw){ cMsgSet('방 코드와 비밀번호를 입력하세요'); return; }
+  const room=ROOM, pw=$('#cPw').value;
+  if(!pw){ cMsgSet('비밀번호를 입력하세요'); return; }
   cMsgSet('확인 중…');
   try{
     const secret=await sha256(room+'|'+pw);
     const slots=await fetchSlots(room);
     const r=await putRoom(room, secret, slots); // 내용 변경 없는 쓰기로 비밀번호를 검증
-    if(r.status===401||r.status===403){ cMsgSet('❌ 등록되지 않은 방이거나 비밀번호가 달라요.'); return; }
+    if(r.status===401||r.status===403){ cMsgSet('❌ 비밀번호가 달라요.'); return; }
     if(!r.ok) throw 0;
     Object.assign(cloudCfg,{room,pw,ok:true}); saveCloudCfg();
     loadMapKey(room);
@@ -1172,8 +1184,8 @@ async function cloudLogin(){
 }
 function cloudLogout(){
   cloudCfg.ok=false; saveCloudCfg();
-  $('#cRoom').value=cloudCfg.room||''; $('#cPw').value=cloudCfg.pw||'';
-  $('#cSlots').innerHTML=''; $('#cDefInfo').textContent=''; cMsgSet(''); cloudUI();
+  $('#cPw').value='';
+  $('#cSlots').innerHTML=''; $('#cDefInfo').textContent=''; cMsgSet('로그아웃했어요.'); cloudUI();
 }
 
 function openSaveDialog(){
@@ -1184,14 +1196,14 @@ async function cloudSave(){
   saveDialog.close();
   cMsgSet('저장 중…');
   try{
-    const secret=await sha256(cloudCfg.room+'|'+cloudCfg.pw);
-    const slots=await fetchSlots(cloudCfg.room);
+    const secret=await sha256(ROOM+'|'+cloudCfg.pw);
+    const slots=await fetchSlots(ROOM);
     mergeLib(slots['__lib']); refresh();
     slots['__lib']=buildLibSlot(slots['__lib']);
     const saved={ name:title, at:Date.now(), data:JSON.stringify(state) };
     slots['s'+saved.at]=saved;
-    const r=await putRoom(cloudCfg.room, secret, slots);
-    if(r.status===401||r.status===403){ cMsgSet('❌ 방 비밀번호가 바뀐 것 같아요 — 나가기 후 다시 입장해 주세요.'); return; }
+    const r=await putRoom(ROOM, secret, slots);
+    if(r.status===401||r.status===403){ cMsgSet('❌ 비밀번호가 바뀐 것 같아요 — 로그아웃 후 다시 로그인해 주세요.'); return; }
     if(!r.ok) throw 0;
     setBase(saved.name, saved.at, saved.data); renderCurFile(); renderTabs();
     cMsgSet('✅ 저장했어요!');
@@ -1201,7 +1213,7 @@ async function cloudSave(){
 async function cloudList(){
   cMsgSet('불러오는 중…');
   try{
-    const slots=await fetchSlots(cloudCfg.room);
+    const slots=await fetchSlots(ROOM);
     mergeLib(slots['__lib']); refresh();
     if(!Object.keys(slots).filter(k=>!k.startsWith('__')).length){ cMsgSet('아직 저장된 일정이 없어요. "지금 일정 저장"으로 첫 저장을 해보세요.'); $('#cSlots').innerHTML=''; return; }
     cMsgSet('');
@@ -1210,8 +1222,8 @@ async function cloudList(){
 }
 function renderSlots(slots){
   const box=$('#cSlots'); box.innerHTML='';
-  const def=slots['__default'] || (cloudCfg.room===DEFAULT_ROOM && slots[DEFAULT_FALLBACK_SLOT] ? Object.assign({src:DEFAULT_FALLBACK_SLOT}, slots[DEFAULT_FALLBACK_SLOT]) : null);
-  $('#cDefInfo').textContent = def ? `⭐ 기본 일정: ${slotTitle(def.name, def.savedAt||def.at)} (${fmtStamp(def.savedAt||def.at)} 저장본) — 이 방으로 접속하면 로그인 없이 이 일정이 보여요.` : '⭐ 아직 기본 일정이 없어요.';
+  const def=slots['__default'] || (ROOM===ROOM && slots[DEFAULT_FALLBACK_SLOT] ? Object.assign({src:DEFAULT_FALLBACK_SLOT}, slots[DEFAULT_FALLBACK_SLOT]) : null);
+  $('#cDefInfo').textContent = def ? `⭐ 기본 일정: ${slotTitle(def.name, def.savedAt||def.at)} (${fmtStamp(def.savedAt||def.at)} 저장본) — 플래너에 들어오면 로그인 없이 이 일정이 보여요.` : '⭐ 아직 기본 일정이 없어요.';
   Object.entries(slots).filter(([id])=>!id.startsWith('__')).sort((a,b)=>(b[1].at||0)-(a[1].at||0)).forEach(([id,s])=>{
     const isDef = def && def.src===id;
     const d=document.createElement('div'); d.className='slot'+(isDef?' isdef':'');
@@ -1235,11 +1247,11 @@ async function cloudDelete(id){
   if(!confirm('이 저장본을 삭제할까요?')) return;
   cMsgSet('삭제 중…');
   try{
-    const secret=await sha256(cloudCfg.room+'|'+cloudCfg.pw);
-    const slots=await fetchSlots(cloudCfg.room);
+    const secret=await sha256(ROOM+'|'+cloudCfg.pw);
+    const slots=await fetchSlots(ROOM);
     delete slots[id];
-    const r=await putRoom(cloudCfg.room, secret, slots);
-    if(r.status===401||r.status===403){ cMsgSet('❌ 삭제 권한 확인 실패 — 나가기 후 다시 입장해 주세요.'); return; }
+    const r=await putRoom(ROOM, secret, slots);
+    if(r.status===401||r.status===403){ cMsgSet('❌ 삭제 권한 확인 실패 — 로그아웃 후 다시 로그인해 주세요.'); return; }
     if(!r.ok) throw 0;
     cMsgSet('삭제했어요.');
     renderSlots(slots);
@@ -1248,15 +1260,15 @@ async function cloudDelete(id){
 /* 기본 일정: slots/__default. 접속 시 이 기기가 아직 못 본 기본 일정이면 자동으로 불러온다 */
 async function cloudSetDefault(slot, src){
   const name=slot.name||'저장본', data=slot.data;
-  if(!confirm(`"${name}"을(를) 기본 일정으로 설정할까요?\n이 방으로 접속하는 기기는 다음 접속 때 이 일정을 자동으로 불러와요.`)) return;
+  if(!confirm(`"${name}"을(를) 기본 일정으로 설정할까요?\n플래너에 들어오는 모든 기기가 다음 접속 때 이 일정을 자동으로 불러와요.`)) return;
   cMsgSet('기본 일정 설정 중…');
   try{
-    const secret=await sha256(cloudCfg.room+'|'+cloudCfg.pw);
-    const slots=await fetchSlots(cloudCfg.room);
+    const secret=await sha256(ROOM+'|'+cloudCfg.pw);
+    const slots=await fetchSlots(ROOM);
     const at=Date.now();
     slots['__default']={name, src, at, savedAt:slot.at||at, data};
-    const r=await putRoom(cloudCfg.room, secret, slots);
-    if(r.status===401||r.status===403){ cMsgSet('❌ 권한 확인 실패 — 나가기 후 다시 입장해 주세요.'); return; }
+    const r=await putRoom(ROOM, secret, slots);
+    if(r.status===401||r.status===403){ cMsgSet('❌ 권한 확인 실패 — 로그아웃 후 다시 로그인해 주세요.'); return; }
     if(!r.ok) throw 0;
     localStorage.setItem(DEF_SEEN_KEY, at);
     const st=JSON.parse(data); if(st.days && st.settings){ state=st; setBase(name, slot.at, data); initAll(); }
@@ -1268,19 +1280,19 @@ async function cloudPublish(){
   if(!confirm('지금 화면의 일정을 발행할까요?\n보기 링크로 접속하는 사람에게 이 버전이 보여요.')) return;
   cMsgSet('발행 중…');
   try{
-    const secret=await sha256(cloudCfg.room+'|'+cloudCfg.pw);
-    const slots=await fetchSlots(cloudCfg.room);
+    const secret=await sha256(ROOM+'|'+cloudCfg.pw);
+    const slots=await fetchSlots(ROOM);
     mergeLib(slots['__lib']); refresh();
     slots['__lib']=buildLibSlot(slots['__lib']);
     slots['__published']={at:Date.now(), data:JSON.stringify(state)};
-    const r=await putRoom(cloudCfg.room, secret, slots);
-    if(r.status===401||r.status===403){ cMsgSet('❌ 권한 확인 실패 — 나가기 후 다시 입장해 주세요.'); return; }
+    const r=await putRoom(ROOM, secret, slots);
+    if(r.status===401||r.status===403){ cMsgSet('❌ 권한 확인 실패 — 로그아웃 후 다시 로그인해 주세요.'); return; }
     if(!r.ok) throw 0;
     cMsgSet('📣 발행 완료! "보기 링크 복사"를 눌러 공유하세요.');
   }catch(e){ cMsgSet('발행 실패 — 인터넷 연결을 확인해 주세요.'); }
 }
 function copyViewLink(){
-  const url=`${location.origin}${location.pathname}#v/${cloudCfg.room}`;
+  const url=`${location.origin}${location.pathname}#v/${ROOM}`;
   navigator.clipboard.writeText(url)
     .then(()=>cMsgSet('🔗 보기 링크를 복사했어요! 카톡에 붙여넣기 하세요.'))
     .catch(()=>{ prompt('이 링크를 복사하세요', url); });
@@ -1369,18 +1381,18 @@ if(VIEWER_ROOM){
   })();
 }else{
   initAll();
-  if(cloudCfg.ok) loadMapKey(cloudCfg.room);
+  if(cloudCfg.ok) loadMapKey(ROOM);
   syncDefault();
 }
 /* 방의 기본 일정이 이 기기에서 마지막으로 반영한 것보다 새로우면 자동으로 불러온다.
-   로그인 전 기기는 DEFAULT_ROOM 의 기본 일정을 쓴다. */
+   로그인 전 기기는 ROOM 의 기본 일정을 쓴다. */
 async function syncDefault(){
-  const room = cloudCfg.room || DEFAULT_ROOM;
+  const room = ROOM;
   if(!FIREBASE_DB_URL || !room) return;
   try{
     const r=await fetch(`${FIREBASE_DB_URL}/trips/${room}/slots/__default.json`);
     let def = r.ok ? await r.json() : null;
-    if(!def && room===DEFAULT_ROOM){
+    if(!def && room===ROOM){
       const r2=await fetch(`${FIREBASE_DB_URL}/trips/${room}/slots/${DEFAULT_FALLBACK_SLOT}.json`);
       def = r2.ok ? await r2.json() : null;
     }
