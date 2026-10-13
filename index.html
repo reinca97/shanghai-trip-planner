@@ -266,13 +266,15 @@ body.viewer .card .draghandle{display:none}
 #cloudDialog .slot .sname{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; height:30px; padding:0 10px; text-align:left; font-size:12px; font-weight:600; background:#fff; border:1.5px solid var(--line); border-radius:8px; box-shadow:none}
 #cloudDialog .slot .sname:hover{border-color:var(--orange)}
 #cloudDialog .slot .sname small{color:var(--ink2); font-weight:400; margin-left:4px}
-#cloudDialog .slot .scur{flex:0 0 14px; font-weight:800; color:var(--orange); text-align:center}
+#cloudDialog .slot .scur{flex:0 0 18px; color:var(--orange); display:inline-flex; align-items:center; justify-content:center}
 #cloudDialog .slot.cur .sname{font-weight:800; border-color:var(--orange); background:var(--orange-soft)}
 #cloudDialog .slot .sname{flex:1}
 #cloudDialog .slot .slotbtns button{width:30px; height:30px; padding:0; font-size:13px; line-height:1; background:none; border:none; box-shadow:none; border-radius:8px}
 #cloudDialog .slot .slotbtns button:hover{background:var(--orange-soft)}
 #cloudDialog .slot .slotbtns button{display:inline-flex; align-items:center; justify-content:center; color:var(--ink2)}
 #cloudDialog .slot .slotbtns svg{stroke:currentColor; fill:none}
+#cloudDialog .cicon{display:inline-flex; align-items:center; gap:6px}
+#cloudDialog .cicon svg{stroke:currentColor; fill:none; flex:0 0 auto}
 #cloudDialog .slot .slotbtns button.ison{cursor:default; color:var(--orange)}
 #cloudDialog .slot .slotbtns button.ison svg{fill:var(--orange)}
 #cloudDialog .slot .slotbtns button.ison:hover{background:none}
@@ -390,10 +392,9 @@ body.viewer .card .draghandle{display:none}
     </div>
     <div class="csec">
       <div class="csech"><b>친구에게 보여주기</b></div>
-      <div class="cnote">발행하면 보기 링크로 들어온 사람에게 지금 화면의 일정이 보여요. 보기 링크로는 일정을 고칠 수 없어요.</div>
+      <div class="cnote" id="cShareNote"></div>
       <div class="btns" style="justify-content:flex-start; margin:8px 0 0">
-        <button id="cPublish">📣 발행하기</button>
-        <button id="cViewLink">🔗 보기 링크 복사</button>
+        <button id="cViewLink" class="cicon">보기 링크 복사</button>
       </div>
     </div>
   </div>
@@ -525,7 +526,7 @@ const CATEMOJI = {tour:'🏛️', food:'🥢', cafe:'🧁', shop:'🛍️', etc:
 
 /* ============================================================ state ============================================================ */
 const LS_KEY = 'shanghai-trip-v1';
-/* 보기 전용 모드: 링크가 #v/방코드 형태면 발행본만 보여준다 */
+/* 보기 전용 모드: 링크가 #v/방코드 형태면 공유 중인 일정만 보여준다 */
 const VIEWER_ROOM = /^#v\//.test(location.hash) ? 'shanghai-nana' : null; // 보기 링크도 상하이 방만
 let state = null;
 let uidSeq = 1;
@@ -1110,7 +1111,7 @@ $('#ioApply').onclick=()=>{
 const FIREBASE_DB_URL = 'https://shanghai-eee28-default-rtdb.asia-southeast1.firebasedatabase.app'; // 미설정이면 ☁️ 버튼 숨김
 const cloudCfg = JSON.parse(localStorage.getItem('sh-cloud')||'{}');
 const ROOM = 'shanghai-nana'; // 상하이 플래너는 이 방만 쓴다 (사용자에게는 노출하지 않음)
-const DEFAULT_FALLBACK_SLOT = 's1791632260148'; // 방에 기본 일정이 아직 없을 때 쓸 저장본 (10/10 20:37)
+const DEFAULT_FALLBACK_SLOT = 's1791632260148'; // 이 저장본(10/10 20:37)보다 새로 공유하기 전까지는 이걸 공유 일정으로 본다
 const DEF_SEEN_KEY = 'sh-default-seen';
 if(cloudCfg.room && cloudCfg.room!==ROOM){ cloudCfg.ok=false; cloudCfg.pw=''; cloudCfg.room=ROOM; } // 다른 방으로 로그인돼 있던 기기는 로그아웃
 function saveCloudCfg(){ localStorage.setItem('sh-cloud', JSON.stringify(cloudCfg)); }
@@ -1227,22 +1228,42 @@ async function cloudList(){
     renderSlots(slots);
   }catch(e){ cMsgSet('불러오기 실패 — 인터넷 연결을 확인해 주세요.'); }
 }
-const ICON_STAR='<svg viewBox="0 0 24 24" width="17" height="17" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 17l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"/></svg>';
+const ICON_PUB='<svg viewBox="0 0 24 24" width="17" height="17" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M3.5 10v4h3l8 4.5v-13l-8 4.5z"/><path d="M6.5 14l1.2 5h2.3l-1-5" /><path d="M18 9.5a3.5 3.5 0 010 5" fill="none"/></svg>';
+const ICON_LINK='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></svg>';
+const ICON_EYE='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></svg>';
+let lastSlots={};
 const ICON_TRASH='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 12.5h9l1-12.5M10 11v5M14 11v5"/></svg>';
+/* 공유 중인 일정 = slots/__published. 플래너에 들어오는 사람도, 보기 링크로 들어오는 사람도 이 일정을 본다.
+   발행본보다 새로운 FALLBACK 저장본(10/10 20:37)이 있으면 그걸 공유 일정으로 본다 (다음 발행 전까지). */
+function sharedOf(slots){
+  const pub=slots['__published'], fb=slots[DEFAULT_FALLBACK_SLOT];
+  let id=null, at=0, data=null;
+  if(pub && pub.data){
+    at=pub.at||0; data=pub.data;
+    id = pub.src || (Object.entries(slots).find(([k,x])=>!k.startsWith('__') && x.data===pub.data)||[])[0] || null;
+  }
+  if(fb && fb.data && (fb.at||0) > at){ id=DEFAULT_FALLBACK_SLOT; at=fb.at; data=fb.data; }
+  if(!data) return null;
+  const slot = id ? slots[id] : null;
+  return {id, at, data, name: slot ? slot.name : '공유 일정', savedAt: slot ? slot.at : at};
+}
 function renderSlots(slots){
+  lastSlots=slots;
   const box=$('#cSlots'); box.innerHTML='';
-  const def=slots['__default'] || (slots[DEFAULT_FALLBACK_SLOT] ? Object.assign({src:DEFAULT_FALLBACK_SLOT}, slots[DEFAULT_FALLBACK_SLOT]) : null);
+  const shared=sharedOf(slots), pubId=shared && shared.id;
+  $('#cShareNote').textContent = (shared ? '' : '아직 공유 중인 일정이 없어요. ')
+    + '확성기가 켜진 저장본이 모두에게 보여요. 보기 링크로는 일정을 볼 수만 있어요.';
   Object.entries(slots).filter(([id])=>!id.startsWith('__')).sort((a,b)=>(b[1].at||0)-(a[1].at||0)).forEach(([id,s])=>{
-    const isDef = def && def.src===id;
+    const isPub = pubId===id;
     const isCur = base && base.at===s.at; // 지금 화면이 이 저장본에서 왔는지
     const d=document.createElement('div'); d.className='slot'+(isCur?' cur':'');
-    d.innerHTML=`<span class="scur" title="${isCur?'지금 보고 있는 저장본':''}">${isCur?'✓':''}</span>
+    d.innerHTML=`<span class="scur" title="${isCur?'지금 보고 있는 저장본':''}">${isCur?ICON_EYE:''}</span>
       <button class="sname" data-act="load" title="${isCur?'지금 보고 있는 저장본 · 다시 불러오기':'불러오기'}">💾 ${esc(slotTitle(s.name, s.at))}<small>${fmtStamp(s.at)}</small></button>
-      <span class="slotbtns">${isDef
-        ? `<button class="ison" title="기본 일정" aria-label="기본 일정">${ICON_STAR}</button>`
-        : `<button data-act="def" title="기본 일정으로 설정" aria-label="기본 일정으로 설정">${ICON_STAR}</button>`}<button data-act="del" title="삭제" aria-label="삭제">${ICON_TRASH}</button></span>`;
-    const defBtn=d.querySelector('[data-act=def]');
-    if(defBtn) defBtn.onclick=()=>cloudSetDefault(s, id);
+      <span class="slotbtns">${isPub
+        ? `<button class="ison" title="공유 중인 일정" aria-label="공유 중인 일정">${ICON_PUB}</button>`
+        : `<button data-act="pub" title="이 일정 공유하기" aria-label="이 일정 공유하기">${ICON_PUB}</button>`}<button data-act="del" title="삭제" aria-label="삭제">${ICON_TRASH}</button></span>`;
+    const pubBtn=d.querySelector('[data-act=pub]');
+    if(pubBtn) pubBtn.onclick=()=>cloudPublish(s, id);
     d.querySelector('[data-act=load]').onclick=()=>{
       if(!confirm(`"${s.name}" 저장본을 불러올까요?\n지금 화면의 일정은 덮어써져요. (걱정되면 먼저 저장해 두세요)`)) return;
       try{
@@ -1269,39 +1290,24 @@ async function cloudDelete(id){
     renderSlots(slots);
   }catch(e){ cMsgSet('삭제 실패 — 인터넷 연결을 확인해 주세요.'); }
 }
-/* 기본 일정: slots/__default. 접속 시 이 기기가 아직 못 본 기본 일정이면 자동으로 불러온다 */
-async function cloudSetDefault(slot, src){
-  const name=slot.name||'저장본', data=slot.data;
-  if(!confirm(`"${name}"을(를) 기본 일정으로 설정할까요?\n플래너에 들어오는 모든 기기가 다음 접속 때 이 일정을 자동으로 불러와요.`)) return;
-  cMsgSet('기본 일정 설정 중…');
-  try{
-    const secret=await sha256(ROOM+'|'+cloudCfg.pw);
-    const slots=await fetchSlots(ROOM);
-    const at=Date.now();
-    slots['__default']={name, src, at, savedAt:slot.at||at, data};
-    const r=await putRoom(ROOM, secret, slots);
-    if(r.status===401||r.status===403){ cMsgSet('❌ 권한 확인 실패 — 로그아웃 후 다시 로그인해 주세요.'); return; }
-    if(!r.ok) throw 0;
-    localStorage.setItem(DEF_SEEN_KEY, at);
-    const st=JSON.parse(data); if(st.days && st.settings){ state=keepView(st); setBase(name, slot.at, data); initAll(); }
-    cMsgSet('⭐ 기본 일정으로 설정했어요!');
-    renderSlots(slots);
-  }catch(e){ cMsgSet('설정 실패 — 인터넷 연결을 확인해 주세요.'); }
-}
-async function cloudPublish(){
-  if(!confirm('지금 화면의 일정을 발행할까요?\n보기 링크로 접속하는 사람에게 이 버전이 보여요.')) return;
-  cMsgSet('발행 중…');
+/* 저장본 하나를 공유 일정으로 정한다 */
+async function cloudPublish(slot, src){
+  if(!confirm(`"${slotTitle(slot.name, slot.at)}" 일정을 공유할까요?\n플래너에 들어오는 사람과 보기 링크로 들어오는 사람 모두 이 일정을 보게 돼요.`)) return;
+  cMsgSet('공유 중…');
   try{
     const secret=await sha256(ROOM+'|'+cloudCfg.pw);
     const slots=await fetchSlots(ROOM);
     mergeLib(slots['__lib']); refresh();
     slots['__lib']=buildLibSlot(slots['__lib']);
-    slots['__published']={at:Date.now(), data:JSON.stringify(state)};
+    const at=Date.now();
+    slots['__published']={at, src, data:slot.data};
     const r=await putRoom(ROOM, secret, slots);
     if(r.status===401||r.status===403){ cMsgSet('❌ 권한 확인 실패 — 로그아웃 후 다시 로그인해 주세요.'); return; }
     if(!r.ok) throw 0;
-    cMsgSet('📣 발행 완료! "보기 링크 복사"를 눌러 공유하세요.');
-  }catch(e){ cMsgSet('발행 실패 — 인터넷 연결을 확인해 주세요.'); }
+    localStorage.setItem(DEF_SEEN_KEY, at); // 내가 공유한 일정이 다음 접속 때 내 화면을 덮어쓰지 않게
+    cMsgSet('📣 공유했어요! "보기 링크 복사"로 링크를 보낼 수 있어요.');
+    renderSlots(slots);
+  }catch(e){ cMsgSet('공유 실패 — 인터넷 연결을 확인해 주세요.'); }
 }
 function copyViewLink(){
   const url=`${location.origin}${location.pathname}#v/${ROOM}`;
@@ -1309,7 +1315,7 @@ function copyViewLink(){
     .then(()=>cMsgSet('🔗 보기 링크를 복사했어요! 카톡에 붙여넣기 하세요.'))
     .catch(()=>{ prompt('이 링크를 복사하세요', url); });
 }
-$('#cPublish').onclick=cloudPublish;
+$('#cViewLink').insertAdjacentHTML('afterbegin', ICON_LINK);
 $('#cViewLink').onclick=copyViewLink;
 
 /* 모바일 ⋯ 메뉴 */
@@ -1380,15 +1386,14 @@ if(VIEWER_ROOM){
   loadMapKey(VIEWER_ROOM);
   (async ()=>{
     try{
-      const r=await fetch(`${FIREBASE_DB_URL}/trips/${VIEWER_ROOM}/slots/__published.json`);
-      const pub = r.ok ? await r.json() : null;
-      if(pub && pub.data){
+      const r=await fetch(`${FIREBASE_DB_URL}/trips/${VIEWER_ROOM}/slots.json`);
+      const pub = r.ok ? sharedOf((await r.json())||{}) : null;
+      if(pub){
         const st=JSON.parse(pub.data);
         if(st.days && st.settings) state=st;
-        const d=new Date(pub.at||0);
-        $('#pubStamp').textContent=`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} 발행`;
+        $('#pubStamp').textContent=`${fmtStamp(pub.savedAt)} 저장본`;
       }else{
-        $('#pubStamp').textContent='미발행';
+        $('#pubStamp').textContent='공유 전';
       }
     }catch(e){ $('#pubStamp').textContent='오프라인'; }
     // 여행 중이면 오늘 날짜 탭을 자동으로 연다
@@ -1402,24 +1407,18 @@ if(VIEWER_ROOM){
   if(cloudCfg.ok) loadMapKey(ROOM);
   syncDefault();
 }
-/* 방의 기본 일정이 이 기기에서 마지막으로 반영한 것보다 새로우면 자동으로 불러온다.
-   로그인 전 기기는 ROOM 의 기본 일정을 쓴다. */
+/* 공유 중인 일정이 이 기기에서 마지막으로 반영한 것보다 새로우면 자동으로 불러온다 */
 async function syncDefault(){
-  const room = ROOM;
-  if(!FIREBASE_DB_URL || !room) return;
+  if(!FIREBASE_DB_URL) return;
   try{
-    const r=await fetch(`${FIREBASE_DB_URL}/trips/${room}/slots/__default.json`);
-    let def = r.ok ? await r.json() : null;
-    if(!def && room===ROOM){
-      const r2=await fetch(`${FIREBASE_DB_URL}/trips/${room}/slots/${DEFAULT_FALLBACK_SLOT}.json`);
-      def = r2.ok ? await r2.json() : null;
-    }
-    if(!def || !def.data) return;
-    if((def.at||0) <= (+localStorage.getItem(DEF_SEEN_KEY)||0)) return;
-    const st=JSON.parse(def.data);
+    const r=await fetch(`${FIREBASE_DB_URL}/trips/${ROOM}/slots.json`);
+    const sh = r.ok ? sharedOf((await r.json())||{}) : null;
+    if(!sh) return;
+    if((sh.at||0) <= (+localStorage.getItem(DEF_SEEN_KEY)||0)) return;
+    const st=JSON.parse(sh.data);
     if(!st.days || !st.settings) return;
-    state=keepView(st); localStorage.setItem(DEF_SEEN_KEY, def.at); setBase(def.name||'기본 일정', def.savedAt||def.at, def.data); initAll();
-    toast(`⭐ 기본 일정(${fmtStamp(def.at)} 지정)을 불러왔어요`);
+    state=keepView(st); localStorage.setItem(DEF_SEEN_KEY, sh.at); setBase(sh.name, sh.savedAt, sh.data); initAll();
+    toast(`📣 공유 중인 일정 "${slotTitle(sh.name, sh.savedAt)}"을 불러왔어요`);
   }catch(e){}
 }
 </script>
