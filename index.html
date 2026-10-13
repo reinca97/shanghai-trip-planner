@@ -246,9 +246,8 @@ body.viewer .card .draghandle{display:none}
 #apResults .sr{font-size:12px; padding:7px 9px; background:#fff; border:1.5px solid var(--line); border-radius:7px; margin-bottom:5px; cursor:pointer}
 #apResults .sr.sel{border-color:var(--orange); background:var(--orange-soft)}
 #cSlots{max-height:180px; overflow-y:auto; margin-top:8px}
-#cloudDialog .slot{display:flex; align-items:center; justify-content:space-between; gap:8px; background:#fff; border:1.5px solid var(--line); border-radius:8px; padding:6px 9px; margin-top:6px; font-size:12px}
+#cloudDialog .slot{display:flex; align-items:center; gap:5px; margin-top:6px; font-size:12px}
 #cloudDialog .slot .slotbtns{display:flex; gap:5px; flex:0 0 auto}
-#cloudDialog .slot button{padding:3px 8px; font-size:11px}
 #cMsg{font-size:12px; color:var(--ink2); margin-top:10px; min-height:16px}
 #memoDialog textarea{height:120px}
 #dayPickBtns button{display:block; width:100%; text-align:left; margin-bottom:7px; border:1.5px solid var(--line); border-left:6px solid var(--dc,var(--orange)); border-radius:9px; background:#fff; padding:11px 13px; font-size:13.5px}
@@ -264,14 +263,16 @@ body.viewer .card .draghandle{display:none}
 #cloudDialog .csech{display:flex; align-items:center; font-size:13px}
 #cloudDialog .csech .ctext{margin-left:auto}
 #cloudDialog .cnote{font-size:11.5px; color:var(--ink2); margin-top:4px; line-height:1.5}
-#cloudDialog .slot .sname{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+#cloudDialog .slot .sname{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; height:30px; padding:0 10px; text-align:left; font-size:12px; font-weight:600; background:#fff; border:1.5px solid var(--line); border-radius:8px; box-shadow:none}
+#cloudDialog .slot .sname:hover{border-color:var(--orange)}
 #cloudDialog .slot .sname small{color:var(--ink2); font-weight:400; margin-left:4px}
 #cloudDialog .slot .scur{flex:0 0 14px; font-weight:800; color:var(--orange); text-align:center}
-#cloudDialog .slot.cur{border-color:var(--orange)}
-#cloudDialog .slot.cur .sname{font-weight:700}
+#cloudDialog .slot.cur .sname{font-weight:800; border-color:var(--orange); background:var(--orange-soft)}
 #cloudDialog .slot .sname{flex:1}
-#cloudDialog .slot .slotbtns button{width:28px; height:26px; padding:0; font-size:13px; line-height:1}
-#cloudDialog .slot .slotbtns button.ison{background:var(--orange-soft); border-color:var(--orange); cursor:default}
+#cloudDialog .slot .slotbtns button{width:30px; height:30px; padding:0; font-size:13px; line-height:1; background:none; border:none; box-shadow:none; border-radius:8px}
+#cloudDialog .slot .slotbtns button:hover{background:var(--orange-soft)}
+#cloudDialog .slot .slotbtns button.ison{cursor:default}
+#cloudDialog .slot .slotbtns button.ison:hover{background:none}
 #saveDialog{width:min(380px,92vw)}
 #saveDialog input{width:100%; box-sizing:border-box; border:1.5px solid var(--line); border-radius:8px; padding:8px 10px; background:#fff; outline:none; font-size:14px}
 #saveDialog input:focus{border-color:var(--orange)}
@@ -1231,8 +1232,8 @@ function renderSlots(slots){
     const isCur = base && base.at===s.at; // 지금 화면이 이 저장본에서 왔는지
     const d=document.createElement('div'); d.className='slot'+(isCur?' cur':'');
     d.innerHTML=`<span class="scur" title="${isCur?'지금 보고 있는 저장본':''}">${isCur?'✓':''}</span>
-      <span class="sname">💾 ${esc(slotTitle(s.name, s.at))}<small>${fmtStamp(s.at)}</small></span>
-      <span class="slotbtns"><button data-act="load" title="불러오기" aria-label="불러오기">📂</button>${isDef
+      <button class="sname" data-act="load" title="${isCur?'지금 보고 있는 저장본 · 다시 불러오기':'불러오기'}">💾 ${esc(slotTitle(s.name, s.at))}<small>${fmtStamp(s.at)}</small></button>
+      <span class="slotbtns">${isDef
         ? '<button class="ison" title="기본 일정" aria-label="기본 일정">⭐</button>'
         : '<button data-act="def" title="기본 일정으로 설정" aria-label="기본 일정으로 설정">☆</button>'}<button data-act="del" title="삭제" aria-label="삭제">🗑️</button></span>`;
     const defBtn=d.querySelector('[data-act=def]');
