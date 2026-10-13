@@ -1417,7 +1417,7 @@ if(VIEWER_ROOM){
   })();
 }else{
   initAll();
-  if(cloudCfg.ok) loadMapKey(ROOM);
+  loadMapKey(ROOM); // 로그인 안 한 기기도 지도 키를 쓰게
   syncDefault();
 }
 /* 공유 중인 일정이 이 기기에서 마지막으로 반영한 것보다 새로우면 자동으로 불러온다 */
