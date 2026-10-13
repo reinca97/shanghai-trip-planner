@@ -92,8 +92,6 @@ body.viewer #curFile{display:none}
 @media (max-width:760px){ #curFile{max-width:52vw; padding:3px 8px} }
 #dayTabs button.on{color:#fff; background:var(--tabclr,var(--ink));}
 #dayList{flex:1; overflow-y:auto; padding:16px 20px 60px; min-height:0}
-.amapextra{display:block; margin:-4px 2px 10px; font-size:11px; color:var(--ink2); text-decoration:none; line-height:1.5}
-.amapextra u{color:var(--orange); font-weight:700; white-space:nowrap}
 .amapday{display:flex; align-items:center; justify-content:center; gap:6px; margin:0 0 10px; padding:8px 12px; border:1.5px solid var(--ink); border-radius:10px; background:#fff; box-shadow:2px 2px 0 var(--ink); font-size:12.5px; font-weight:700; color:var(--ink); text-decoration:none}
 @media (hover:hover){ .amapday:hover{transform:translate(1px,1px); box-shadow:1px 1px 0 var(--ink)} }
 .anchor{
@@ -432,10 +430,10 @@ const PLACES = [
  {id:'sijiminfu', name:'사계민복 (베이징덕)', zh:'四季民福烤鸭店 (북와이탄점)', cat:'food', lat:31.24912, lng:121.48598, amap:'https://surl.amap.com/5ru2Ldw116a2', def:[2,1,'10:30'], tip:'정통 베이징덕 가성비 맛집, 대존맛. 오픈런(10:30) 또는 따종디엔핑 예약(중국번호 185-1234-5678 입력). 오리 반마리+전병+깐풍새우 조합. 2인 5~7만원. 물티슈 유료 주의'},
  {id:'wukang', name:'우캉루 & 안푸루', zh:'武康路 & 安福路 (우캉맨션)', cat:'tour', lat:31.20631, lng:121.43366, amap:'https://surl.amap.com/cZiRjXEp48D', def:[2,2,'12:00'], tip:'우캉맨션 → 13de marzo 걸으며 구경. 화장실 없음 주의!! (Ferguson Lane 2층 / 다인몰 서점 이용, 휴지 지참)'},
  {id:'kprovgov', name:'대한민국 임시정부 청사', zh:'大韩民国临时政府旧址', cat:'tour', lat:31.21930, lng:121.47011, amap:'https://surl.amap.com/4li62Wv7J6Oy', def:[2,3,'14:00'], tip:'발권 마감 16:30! 여권 지참 필수. 내부 촬영 제한'},
- {id:'xintiandi', name:'신천지 쇼핑 투어', zh:'新天地', cat:'shop', lat:31.22242, lng:121.46993, amap:'https://uri.amap.com/marker?poiid=B00155KUM0&callnative=1', def:[2,4,'15:30'], tip:'온러닝·UGG·젠틀몬스터 등 힙 브랜드 총집합. 유럽 노천카페 분위기. 시간 순삭 주의'},
+ {id:'xintiandi', name:'신천지 쇼핑 투어', zh:'新天地', cat:'shop', lat:31.22242, lng:121.46993, amap:'https://uri.amap.com/marker?position=121.474465,31.220484&name=%E4%B8%8A%E6%B5%B7%E6%96%B0%E5%A4%A9%E5%9C%B0&callnative=1', def:[2,4,'15:30'], tip:'온러닝·UGG·젠틀몬스터 등 힙 브랜드 총집합. 유럽 노천카페 분위기. 시간 순삭 주의'},
  {id:'polux', name:'폴럭스 (미슐랭 브런치)', zh:'Polux by Paul Pairet', cat:'cafe', lat:31.22313, lng:121.47066, amap:'https://surl.amap.com/g15see21fgEj', def:[2,5,'16:30'], tip:'프렌치토스트+아이스크림 강추(121위안). 테라스 맛집 — 따종디엔핑 예약 권장, 해지기 전 방문'},
  {id:'tianzifang', name:'티앤즈팡', zh:'田子坊', cat:'tour', lat:31.21014, lng:121.46412, amap:'https://surl.amap.com/l6mDr1AEfOt', def:[2,6,'18:30'], tip:'인사동st 예술 골목, 소품샵 투어. 블랜버니 찻집이 가장 유명. 규모 작으니 시간 없으면 생략 가능'},
- {id:'yuyuan', name:'예원 (야경)', zh:'豫园', cat:'tour', lat:31.22970, lng:121.48802, amap:'https://uri.amap.com/marker?poiid=B00155MF55&callnative=1', def:[2,7,'19:30'], tip:'전통 야경 끝판왕! 상점가 야경만으로도 충분. 등불축제 기간(1/26~3/3)엔 상점가 입장도 유료 주의'},
+ {id:'yuyuan', name:'예원 (야경)', zh:'豫园', cat:'tour', lat:31.22970, lng:121.48802, amap:'https://uri.amap.com/marker?position=121.492497,31.227714&name=%E4%B8%8A%E6%B5%B7%E8%B1%AB%E5%9B%AD&callnative=1', def:[2,7,'19:30'], tip:'전통 야경 끝판왕! 상점가 야경만으로도 충분. 등불축제 기간(1/26~3/3)엔 상점가 입장도 유료 주의'},
  {id:'dahuchun', name:'대호춘 & 남상만두', zh:'大壶春 & 南翔馒头店', cat:'food', lat:31.22858, lng:121.48705, amap:'https://surl.amap.com/cbymMtg1yeWH', def:[2,8,'20:30'], tip:'대호춘: 생전포(성젠바오) / 남상만두: 샤오롱바오 강추. 두 곳이 맞은편이라 둘 다 먹기 가능!'},
  // ---- Day 3
  {id:'jianbing', name:'지엔빙 아침 (두오지구)', zh:'多几谷 (뉴월드 NEW ONE점)', cat:'food', lat:31.24040, lng:121.48086, amap:'https://surl.amap.com/WNtJBkS5oA', def:[3,1,'10:00'], tip:'로컬 조식 지엔빙을 가장 위생적으로! 양 많으니 2인 1개. 배달 주문도 추천'},
@@ -544,7 +542,11 @@ function getPlace(pid){
   if(!p) return null;
   const out = Object.assign({}, p);
   if(p.useHotel){ const h = getHotel(); out.lat=h.lat; out.lng=h.lng; out.zh = h.name; }
-  if(!out.amap){ const poi=AMAP_POI[p.useHotel ? getHotel().id : pid]; if(poi) out.amap=`https://uri.amap.com/marker?poiid=${poi}&callnative=1`; }
+  // 원래 고덕 링크가 없던 곳: 좌표로 연다 (장소 ID 링크는 모바일 고덕에서 로딩이 멈춘다)
+  if(!out.amap && AMAP_POI[p.useHotel ? getHotel().id : pid] && out.lat!=null){
+    const [la,ln]=wgs2gcj(out.lat,out.lng);
+    out.amap=`https://uri.amap.com/marker?position=${ln.toFixed(6)},${la.toFixed(6)}&name=${encodeURIComponent(out.zh||out.name)}&callnative=1`;
+  }
   const fix = state.coordFix[pid];
   if(fix){ out.lat=fix[0]; out.lng=fix[1]; }
   return out;
@@ -724,9 +726,8 @@ function renderTabs(){
 }
 
 let daySortable=null;
-/* 고덕지도에 그날 장소를 한꺼번에 띄운다 (고덕 URI API 다중 마커, 링크 하나에 최대 10곳).
-   - 고덕 장소 ID(POI)가 있으면 ID로 띄운다 → 핀을 누르면 장소 카드(별점·저장 버튼)가 뜬다.
-   - 고덕 웹은 ID 핀과 좌표 핀이 섞이면 한 종류만 그려서, 좌표뿐인 곳(숙소·직접 추가한 곳)은 따로 링크를 만든다.
+/* 고덕지도 연동 (고덕 URI API). 한 번에 보기는 다중 마커(링크 하나에 최대 10곳), 카드의 고덕 링크는 장소 ID로 연다.
+   - 다중 마커는 좌표로 넘긴다. 장소 ID 다중 마커는 PC 웹에선 되지만 모바일 고덕에선 로봇 확인 화면이 뜬다.
    - 고덕은 GCJ-02 좌표를 쓴다. coordinate=wgs84 옵션은 PC 웹에서 무시돼서 직접 변환해서 넘긴다. */
 const AMAP_MAX=10;
 // 장소별 고덕 POI ID. 기본 장소는 surl.amap.com 공유 링크에서 추출, 숙소·유람선·우전·직접 추가한 장소(c_*)·예원·신천지는 고덕 검색으로 확인
@@ -748,34 +749,24 @@ function amapNavUrl(p){
 }
 function amapUrl(markers){ return `https://uri.amap.com/marker?markers=${encodeURIComponent(markers.join('|'))}&src=sh-trip-planner&callnative=1`; }
 function amapDayLinks(i){
+  // 모바일 고덕은 장소 ID(POI) 다중 마커를 처리하지 못해서(로봇 확인 화면이 뜸) 좌표 핀으로 띄운다.
+  // 좌표는 고덕 장소 위치에 맞춰 둬서 정확하고, 모바일 핀 카드에 저장(收藏)·길찾기 버튼이 있다.
   const st=state.settings, h=getHotel();
-  const withPoi=[], noPoi=[];
+  const pts=[];
   state.days[i].forEach(it=>{
-    const p=getPlace(it.pid); if(!p) return;
-    const id=AMAP_POI[p.useHotel ? h.id : it.pid];
-    if(id){ if(!withPoi.includes(id)) withPoi.push(id); }
-    else noPoi.push({n:p.useHotel?`숙소 ${h.name}`:p.name, lat:p.lat, lng:p.lng});
+    const p=getPlace(it.pid); if(!p || p.lat==null) return;
+    pts.push({n:p.useHotel?`숙소 ${h.name}`:p.name, lat:p.lat, lng:p.lng});
   });
-  // 경로에 숙소 포함이면 숙소도 같이 띄운다 (이미 일정에 있으면 생략)
-  if(st.hotelInRoute){
-    const hid=AMAP_POI[h.id];
-    if(hid){ if(!withPoi.includes(hid) && withPoi.length%AMAP_MAX!==0) withPoi.push(hid); }
-    else if(!noPoi.some(x=>x.lat===h.lat && x.lng===h.lng)) noPoi.push({n:`숙소 ${h.name}`, lat:h.lat, lng:h.lng});
-  }
+  if(st.hotelInRoute && !pts.some(x=>x.lat===h.lat && x.lng===h.lng) && pts.length%AMAP_MAX!==0) pts.push({n:`숙소 ${h.name}`, lat:h.lat, lng:h.lng});
   const clean=t=>String(t).replace(/[|,]/g,' ').slice(0,24);
-  const coordMarkers=noPoi.map(x=>{ const [la,ln]=wgs2gcj(x.lat,x.lng); return `${ln.toFixed(6)},${la.toFixed(6)},${clean(x.n)}`; });
+  const markers=pts.map(x=>{ const [la,ln]=wgs2gcj(x.lat,x.lng); return `${ln.toFixed(6)},${la.toFixed(6)},${clean(x.n)}`; });
   const out=[];
-  const mk=(href,html,cls)=>{ const el=document.createElement('a'); el.className=cls; el.href=href; el.target='_blank'; el.rel='noopener'; el.innerHTML=html; return el; };
-  // 장소 ID 핀이 하나도 없으면 좌표 핀을 메인 버튼으로
-  const main = withPoi.length ? withPoi : coordMarkers;
-  for(let a=0;a<main.length;a+=AMAP_MAX){
-    const chunk=main.slice(a,a+AMAP_MAX);
-    const range = main.length>AMAP_MAX ? ` (${a+1}~${a+chunk.length}번째)` : '';
-    out.push(mk(amapUrl(chunk), `<span>🇨🇳</span> 고덕지도에서 Day ${i+1} 한 번에 보기${range}`, 'amapday'));
-  }
-  if(withPoi.length && coordMarkers.length){
-    const names=noPoi.map(x=>esc(x.n)).join(', ');
-    out.push(mk(amapUrl(coordMarkers.slice(0,AMAP_MAX)), `고덕 장소 정보가 없는 곳은 빠져요: ${names} <u>따로 보기</u>`, 'amapextra'));
+  for(let a=0;a<markers.length;a+=AMAP_MAX){
+    const chunk=markers.slice(a,a+AMAP_MAX);
+    const range = markers.length>AMAP_MAX ? ` (${a+1}~${a+chunk.length}번째)` : '';
+    const el=document.createElement('a'); el.className='amapday'; el.href=amapUrl(chunk); el.target='_blank'; el.rel='noopener';
+    el.innerHTML=`<span>🇨🇳</span> 고덕지도에서 Day ${i+1} 한 번에 보기${range}`;
+    out.push(el);
   }
   return out;
 }
