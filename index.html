@@ -45,10 +45,6 @@ header h1 em{color:var(--orange); font-style:normal}
 .stepper{display:flex; align-items:center; gap:2px}
 .stepper button{width:22px; height:22px; border:1.5px solid var(--ink); border-radius:6px; background:#fff; font-weight:800; line-height:1}
 .stepper b{min-width:44px; text-align:center; font-size:14px}
-.hbtns{margin-left:auto; display:flex; gap:8px}
-.hbtns button{border:1.5px solid var(--ink); background:#fff; border-radius:10px; padding:6px 12px; font-size:12px; font-weight:700; box-shadow:2px 2px 0 var(--ink); transition:.12s}
-.hbtns button:hover{transform:translate(1px,1px); box-shadow:1px 1px 0 var(--ink)}
-.hbtns button.primary{background:var(--orange); color:#fff}
 #hotelSelect{max-width:190px}
 
 /* ---------- layout ---------- */
@@ -178,9 +174,8 @@ body.viewer #curFile{display:none}
 @media(max-width:900px){
   body{height:100dvh}
   header{gap:6px; padding:6px 10px}
-  header .hgroup, header .hbtns{display:none}
+  header .hgroup{display:none}
   header.open .hgroup{display:flex}
-  header.open .hbtns{display:flex; margin-left:0; width:100%; justify-content:flex-end}
   #mobileNav{display:flex}
   main{display:flex; min-height:0}
   /* 설정창·키보드로 세로 공간이 줄어도 리스트가 0으로 찌부러지지 않게 */
@@ -207,7 +202,7 @@ dialog button.primary{background:var(--orange); color:#fff}
 /* ---------- viewer (발행본 보기 전용) ---------- */
 #pubStamp{display:none}
 body.viewer #pubStamp{display:inline-block; font-size:10.5px; color:var(--ink2); white-space:nowrap; background:var(--orange-soft); border:1px solid var(--line); border-radius:99px; padding:2px 9px; flex:0 0 auto}
-body.viewer #settingsToggle, body.viewer header .hgroup, body.viewer header .hbtns, body.viewer #btnCloud{display:none !important}
+body.viewer #settingsToggle, body.viewer header .hgroup, body.viewer #btnCloud{display:none !important}
 body.viewer #library{display:none !important}
 body.viewer #mobileNav button[data-view="lib"]{display:none}
 @media(min-width:901px){ body.viewer main{grid-template-columns:minmax(370px,1fr) minmax(340px,1.1fr)} }
@@ -228,7 +223,7 @@ body.viewer .card .draghandle{display:none}
 #moreWrap{display:none}
 @media(max-width:900px){
   header:not(.open){flex-wrap:nowrap}
-  header h1{font-size:16px; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1}
+  header h1{font-size:16px; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1 1 auto}
   #btnCloud{display:none}
   #moreWrap{display:block; margin-left:auto; position:relative; flex:0 0 auto}
   #moreBtn{border:1.5px solid var(--ink); background:#fff; border-radius:9px; padding:4px 13px; font-weight:800; font-size:17px; line-height:1.2; box-shadow:2px 2px 0 var(--ink)}
@@ -292,12 +287,12 @@ body.viewer .card .draghandle{display:none}
   <h1>SY <em>&amp;</em> HJ 상하이 트립</h1>
   <span id="pubStamp"></span>
   <span id="curFile" title="불러온 저장본과 달라진 내용이 있으면 주황 점이 표시돼요"></span>
-  <button id="btnCloud" title="친구와 일정 공유">☁️ 공유</button>
+  <button id="btnCloud" title="일정 저장·불러오기, 친구에게 공유">💾 저장·공유</button>
   <button id="settingsToggle">⚙️ 설정</button>
   <div id="moreWrap">
     <button id="moreBtn" title="메뉴">⋯</button>
     <div id="moreMenu">
-      <button data-m="cloud">☁️ 공유 저장</button>
+      <button data-m="cloud">💾 저장·공유</button>
       <button data-m="set">⚙️ 여행 설정</button>
     </div>
   </div>
@@ -309,11 +304,6 @@ body.viewer .card .draghandle{display:none}
   <div class="hgroup"><label>✈️ 출발</label><input type="time" id="depTime"></div>
   <div class="hgroup"><label>🏨 숙소</label><select id="hotelSelect"></select></div>
   <div class="hgroup"><label>경로에 숙소 포함</label><input type="checkbox" id="hotelInRoute"></div>
-  <div class="hbtns">
-    <button id="btnExport">내보내기</button>
-    <button id="btnImport">가져오기</button>
-    <button id="btnReset">초기화</button>
-  </div>
 </header>
 
 <main>
@@ -378,7 +368,7 @@ body.viewer .card .draghandle{display:none}
 </dialog>
 
 <dialog id="cloudDialog">
-  <div class="chead"><h3>☁️ 친구와 일정 공유</h3><button id="cLogout" class="ctext">로그아웃</button></div>
+  <div class="chead"><h3>💾 저장·공유</h3><button id="cLogout" class="ctext">로그아웃</button></div>
   <div id="cLogin">
     <div class="cfield"><label>비밀번호</label><input id="cPw" type="password" placeholder="친구와 약속한 비밀번호"></div>
     <div class="btns" style="justify-content:flex-start; margin-top:4px">
@@ -412,15 +402,6 @@ body.viewer .card .draghandle{display:none}
 </dialog>
 <div id="toast"></div>
 
-<dialog id="ioDialog">
-  <h3 id="ioTitle">일정 내보내기</h3>
-  <textarea id="ioText"></textarea>
-  <div class="btns">
-    <button id="ioCopy">복사</button>
-    <button id="ioApply" class="primary">적용</button>
-    <button onclick="ioDialog.close()">닫기</button>
-  </div>
-</dialog>
 
 <script>
 /* ============================================================
@@ -599,13 +580,6 @@ function initHeader(){
   };
   $('#nMinus').onclick = ()=> changeNights(-1);
   $('#nPlus').onclick = ()=> changeNights(1);
-  $('#btnExport').onclick = ()=> openIO('export');
-  $('#btnImport').onclick = ()=> openIO('import');
-  $('#btnReset').onclick = ()=>{
-    if(confirm('일정을 기본(윤제주 5박 6일 코스)으로 초기화할까요? 내 장소·메모도 사라집니다.')){
-      localStorage.removeItem(LS_KEY); state = defaultState(); setBase('윤제주 기본 코스', 0, JSON.stringify(state)); initAll();
-    }
-  };
 }
 function changeNights(delta){
   const st=state.settings;
@@ -1114,29 +1088,11 @@ $('#apSave').onclick=()=>{
   if(isMobile()) setView('lib');
 };
 
-/* ============================================================ export / import ============================================================ */
-function openIO(mode){
-  const dlg=$('#ioDialog');
-  $('#ioTitle').textContent = mode==='export'?'일정 내보내기 (친구에게 이 텍스트를 보내세요)':'일정 가져오기 (받은 텍스트를 붙여넣으세요)';
-  $('#ioText').value = mode==='export'? JSON.stringify(state) : '';
-  $('#ioApply').style.display = mode==='import'?'':'none';
-  $('#ioCopy').style.display = mode==='export'?'':'none';
-  dlg.showModal();
-}
-$('#ioCopy').onclick=()=>{ $('#ioText').select(); document.execCommand('copy'); $('#ioCopy').textContent='복사됨!'; setTimeout(()=>$('#ioCopy').textContent='복사',1500); };
-$('#ioApply').onclick=()=>{
-  try{
-    const s=JSON.parse($('#ioText').value);
-    if(!s.days||!s.settings) throw 0;
-    state=keepView(s); setBase('가져온 일정', Date.now(), JSON.stringify(s)); save(); $('#ioDialog').close(); initAll();
-  }catch(e){ alert('형식이 올바르지 않습니다. 내보내기로 만든 텍스트 전체를 붙여넣어 주세요.'); }
-};
-
 /* ============================================================ cloud share (Firebase RTDB REST) ============================================================
    방 코드(ROOM, 상하이 고정) + 비밀번호 방식. 비밀번호는 해시로만 전송/저장되며,
    DB 보안 규칙이 "비밀번호(해시) 불일치 시 쓰기 거부"를 서버에서 강제한다.
    읽기(목록 보기)는 방 코드만 알면 가능. */
-const FIREBASE_DB_URL = 'https://shanghai-eee28-default-rtdb.asia-southeast1.firebasedatabase.app'; // 미설정이면 ☁️ 버튼 숨김
+const FIREBASE_DB_URL = 'https://shanghai-eee28-default-rtdb.asia-southeast1.firebasedatabase.app'; // 미설정이면 저장·공유 버튼 숨김
 const cloudCfg = JSON.parse(localStorage.getItem('sh-cloud')||'{}');
 const ROOM = 'shanghai-nana'; // 상하이 플래너는 이 방만 쓴다 (사용자에게는 노출하지 않음)
 const DEFAULT_FALLBACK_SLOT = 's1791632260148'; // 이 저장본(10/10 20:37)보다 새로 공유하기 전까지는 이걸 공유 일정으로 본다
