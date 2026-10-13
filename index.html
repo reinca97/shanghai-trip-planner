@@ -134,6 +134,7 @@ body.viewer #curFile{display:none}
   border:1px solid var(--line); border-radius:6px; padding:2px 7px; background:var(--paper2);
 }
 .card .links a:hover{border-color:var(--orange); color:var(--orange)}
+.card .links a.navlink{border-color:var(--orange); color:var(--orange); background:var(--orange-soft)}
 .card .memotxt{margin-top:6px; border:1.5px dashed var(--line); border-radius:8px; padding:5px 8px; font-size:12px; background:#fffdf5; white-space:pre-wrap; word-break:break-word}
 .card .draghandle{flex:0 0 auto; align-self:center; padding:10px 4px 10px 8px; color:var(--ink2); opacity:.5; cursor:grab; font-size:19px; line-height:1; touch-action:none; user-select:none; -webkit-user-select:none}
 .card .draghandle:active{cursor:grabbing; opacity:.9}
@@ -739,6 +740,12 @@ function wgs2gcj(lat, lng){
   dLat=(dLat*180)/((a*(1-ee))/(m*sm)*PI); dLng=(dLng*180)/(a/sm*Math.cos(rad)*PI);
   return [lat+dLat, lng+dLng];
 }
+/* 고덕 길찾기: from을 비우면 고덕 앱이 현재 위치를 출발지로 넣는다 (모바일 전용). 기본은 대중교통, 앱에서 택시·도보로 바꿀 수 있다 */
+function amapNavUrl(p){
+  const [la,ln]=wgs2gcj(p.lat,p.lng);
+  const nm=String(p.zh||p.name).replace(/[|,]/g,' ').slice(0,30);
+  return `https://uri.amap.com/navigation?to=${ln.toFixed(6)},${la.toFixed(6)},${encodeURIComponent(nm)}&mode=bus&src=sh-trip-planner&callnative=1`;
+}
 function amapUrl(markers){ return `https://uri.amap.com/marker?markers=${encodeURIComponent(markers.join('|'))}&src=sh-trip-planner&callnative=1`; }
 function amapDayLinks(i){
   const st=state.settings, h=getHotel();
@@ -872,6 +879,7 @@ function cardEl(it, idx, color){
       ${p.tip?`<div class="quick">💡 ${esc(p.tip)}</div>`:''}
       ${it.memo?`<div class="memotxt">📝 ${esc(it.memo)}</div>`:''}
       <div class="links">
+        ${p.lat!=null ? `<a class="navlink" href="${esc(amapNavUrl(p))}" target="_blank" rel="noopener" title="지금 내 위치에서 여기까지 고덕지도 길찾기">🧭 길찾기</a>` : ''}
         <a href="${esc(gmap)}" target="_blank" rel="noopener">애플지도 </a>
         ${p.amap && /^https?:\/\//.test(p.amap) ? `<a href="${esc(p.amap)}" target="_blank" rel="noopener">고덕지도 🇨🇳</a>` : ''}
         <button class="memobtn">${it.memo?'📝 메모 수정':'📝 메모'}</button>
